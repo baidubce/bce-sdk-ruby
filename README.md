@@ -1,12 +1,8 @@
 # Baidubce::Sdk
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/baidubce/sdk`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+Welcome to BaiduBce Sdk gem! This gem provides client for BOS.
 
 ## Installation
-
-Add this line to your application's Gemfile:
 
 ```ruby
 gem 'baidubce-sdk'
@@ -22,7 +18,7 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Usage instructions:
 
 ## Development
 
@@ -40,4 +36,3 @@ The gem is available as open source under the terms of the [MIT License](http://
 
 ## Code of Conduct
 
-Everyone interacting in the Baidubce::Sdk project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/baidubce-sdk/blob/master/CODE_OF_CONDUCT.md).
