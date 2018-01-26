@@ -10,7 +10,7 @@
 # either express or implied. See the License for the specific language governing permissions
 # and limitations under the License.
 
-# This module provide some tools for bce client.
+# This module provide some utils for bce client.
 
 require "ERB"
 require "uri"

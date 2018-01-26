@@ -54,7 +54,6 @@ demo "list buckets" do
     puts client.list_buckets()
 end
 
-=begin
 demo "delete bucket" do
     client.delete_bucket("shard-bucket-1")
 end
@@ -324,4 +323,3 @@ demo "abort-multi-upload" do
     client.abort_multipart_upload(bucket_name, key + "_abort", upload_id_abort)
 end
 
-=end
