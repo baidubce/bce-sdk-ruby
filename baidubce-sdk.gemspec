@@ -1,7 +1,7 @@
 # coding: utf-8
 lib = File.expand_path("../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require "baidubce/bce"
+require 'baidubce/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "baidubce-sdk"
@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ["xiaoyong"]
   spec.email         = ["xiaoyong@baidu.com"]
 
-  spec.summary       = 'BaiduBce BOS SDK for Ruby'
+  spec.summary       = 'BaiduBce BOS Ruby SDK'
   spec.description   = 'The official Ruby sdk used to accessing BaiduBce Object Storage Service'
   spec.homepage      = "TODO: Put your gem's website or public repo URL here."
   spec.license       = "MIT"

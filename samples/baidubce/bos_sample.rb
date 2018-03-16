@@ -12,9 +12,12 @@
 # Samples for bos client.
 
 $LOAD_PATH.unshift(File.expand_path("../../../lib", __FILE__))
+
 require 'baidubce/auth/bce_credentials'
-require 'baidubce/services/bos/bos_client'
 require 'baidubce/bce_client_configuration'
+require 'baidubce/services/bos/bos_client'
+require 'baidubce/http/http_headers'
+require 'baidubce/log'
 
 # debug
 credentials = Baidubce::Auth::BceCredentials.new(
@@ -27,8 +30,7 @@ conf = Baidubce::BceClientConfiguration.new(
     "10.210.74.16:8998"
 )
 
-client = Baidubce::Services::BosClient.new(conf)
-bucket_name = "ruby-test-bucket"
+=begin
 # online
 credentials = Baidubce::Auth::BceCredentials.new(
     "415ce912032743dfb560f7b8534351a8",
@@ -39,9 +41,16 @@ conf = Baidubce::BceClientConfiguration.new(
     credentials,
     "http://bj.bcebos.com"
 )
+
+=end
 client = Baidubce::Services::BosClient.new(conf)
 
-bucket_name = "bos-demo"
+bucket_name = "ruby-test-bucket"
+
+# log config
+Baidubce::Log.set_log_file("./test.log")
+Baidubce::Log.set_log_level(Logger::DEBUG)
+
 def demo(msg)
   puts "--------- #{msg} --------"
   puts
@@ -50,15 +59,17 @@ def demo(msg)
   puts
 end
 
+=begin
 demo "list buckets" do
     puts client.list_buckets()
 end
 
 demo "delete bucket" do
-    client.delete_bucket("shard-bucket-1")
+    puts client.delete_bucket("test-bucket") if client.does_bucket_exist("test-bucket")
 end
+
 demo "create bucket" do
-    client.create_bucket(bucket_name)  unless client.does_bucket_exist(bucket_name)
+    puts client.create_bucket(bucket_name) unless client.does_bucket_exist(bucket_name)
 end
 
 demo "get bucket location" do
@@ -166,21 +177,42 @@ demo "put/get bucket storage_class" do
 end
 
 demo "put object" do
-    puts client.put_object_from_string(bucket_name, "obj.txt", "obj")
+
+    options = { Baidubce::Http::CONTENT_TYPE => 'string',
+                "x-bce-meta-key1" => "value1",
+                'Content-Disposition' => 'inline'
+    }
+
+    client.put_object_from_string(bucket_name, "obj.txt", "obj", options)
     puts client.get_object_as_string(bucket_name, "obj.txt")
-    client.get_object_to_file(bucket_name, "obj.txt", "obj.txt")
-    puts client.put_object_from_file(bucket_name, "obj1.txt", "obj.txt")
-    puts client.get_object_as_string(bucket_name, "obj1.txt")
+    client.get_object_to_file(bucket_name, "obj.txt", "obj_file.txt")
+
+    client.put_object_from_file(bucket_name, "obj_file.txt", "obj.txt", options)
+    puts client.get_object_as_string(bucket_name, "obj.txt")
 end
 
 demo "list objects" do
-    puts client.list_objects(bucket_name, prefix: 'test', maxKeys: 10)
+
+    options = { prefix: 'obj',
+                maxKeys: 10,
+                delimiter: '',
+                marker: ''
+    }
+    puts client.list_objects(bucket_name, options)
 end
 
 demo "copy object" do
-    client.copy_object(bucket_name, "obj.txt", bucket_name, 'obj2.txt')
+    user_metadata = { "key1" => "value1" }
+
+    options = { Baidubce::Http::CONTENT_TYPE => 'string',
+                Baidubce::Http::CONTENT_MD5 => 'kkkkkkkk',
+                'user_metadata' => user_metadata
+    }
+    client.copy_object(bucket_name, "obj.txt", bucket_name, 'obj2.txt', options)
+    puts client.get_object_meta_data(bucket_name, "obj2.txt")
 end
 
+=end
 demo "get object" do
     puts client.put_object_from_string(bucket_name, "obj.txt", "object%123456")
     puts client.get_object_as_string(bucket_name, "obj.txt", [0,2])
@@ -208,6 +240,13 @@ demo "delete multiple objects" do
     puts client.delete_multiple_objects(bucket_name, object_list)
 end
 
+demo "generate pre signed url" do
+
+    # 超时参数设置
+    # key需要是sym
+end
+
+=begin
 demo "set/get/delete object acl" do
     # puts "before set object acl"
     key = "obj.txt"
@@ -257,8 +296,8 @@ demo "multi-upload" do
         offset += part_size
         # your should store every part number and etag to invoke complete multi-upload
         part_list << {
-            "partNumber": part_number,
-            "eTag": response[:etag]
+            "partNumber" => part_number,
+            "eTag" => response[:etag]
         }
         part_number += 1
     end
@@ -296,8 +335,8 @@ demo "multi-copy" do
         offset += part_size
         # your should store every part number and etag to invoke complete multi-upload
         part_list << {
-            "partNumber": part_number,
-            "eTag": response["eTag"]
+            "partNumber" => part_number,
+            "eTag" => response["eTag"]
         }
         part_number += 1
     end
@@ -307,7 +346,7 @@ demo "multi-copy" do
     puts client.list_parts(bucket_name, key, upload_id)
 
     # SuperFile step 3: complete multi-upload
-    metadata = {'meta_key': 'meta_value'}
+    metadata = { meta_key: 'meta_value'}
     client.complete_multipart_upload(bucket_name, key+"_copy", upload_id, part_list, user_metadata: metadata)
 end
 
@@ -322,4 +361,4 @@ demo "abort-multi-upload" do
     # abort multi-upload
     client.abort_multipart_upload(bucket_name, key + "_abort", upload_id_abort)
 end
-
+=end

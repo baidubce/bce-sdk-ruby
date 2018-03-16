@@ -16,6 +16,11 @@ Or install it yourself as:
 
     $ gem install baidubce-sdk
 
+## 运行环境
+
+- Ruby版本 >= 2.0
+- 支持Ruby运行环境的Windows/Linux/OS X
+
 ## Usage
 
 Usage instructions:

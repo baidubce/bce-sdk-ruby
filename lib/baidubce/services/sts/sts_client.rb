@@ -31,12 +31,11 @@ module Baidubce
             GET_SESSION_TOKEN_PATH = "sessionToken";
 
             def get_session_token(acl, duration_seconds=nil)
-                params = {}
-                params = { durationSeconds: duration_seconds } unless duration_seconds.nil?
+                params = duration_seconds.nil? ? {} : { durationSeconds: duration_seconds }
                 headers = { Baidubce::Http::CONTENT_TYPE => Baidubce::Http::JSON }
                 body = acl.to_json
                 path = Baidubce::Utils.append_uri(STS_URL_PREFIX, GET_SESSION_TOKEN_VERSION, GET_SESSION_TOKEN_PATH)
-                @http_client.send_request(@config, @signer, Baidubce::Http::POST, path, body, headers, params)
+                @http_client.send_request(@config, @signer, Baidubce::Http::POST, path, params, headers, body)
             end
 
         end

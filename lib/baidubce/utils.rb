@@ -21,9 +21,10 @@ module Baidubce
 
     class Utils
 
+        # parse protocol, host, port from endpoint in config.
         def self.parse_url_host(config)
             endpoint = config.endpoint
-            if !endpoint.include?"://"
+            unless endpoint.include?"://"
                 protocol = config.protocol.downcase
                 raise "Invalid protocol #{protocol}." if protocol != "http" && protocol != 'https'
                 endpoint = sprintf("%s://%s", protocol, endpoint)
@@ -37,12 +38,13 @@ module Baidubce
             return "#{scheme}://#{host}", host
         end
 
+        # Append path_components to the end of base_uri in order.
         def self.append_uri(base_uri, *path_components)
             uri = [base_uri]
             path_components.reject(&:empty?)
-            path_components.each { |path| uri << ERB::Util.url_encode(path)}
+            path_components.each { |path| uri << ERB::Util.url_encode(path) }
 
-            if !uri.empty?
+            unless uri.empty?
                 uri[0].gsub!(/([\/]*$)/, '')
                 uri[-1].gsub!(/(^[\/]*)/, '')
                 uri.each { |u| u.gsub!(/(^[\/]*)|([\/]*$)/, '') }
@@ -57,9 +59,8 @@ module Baidubce
         end
 
         def self.get_canonical_querystring(params, for_signature)
-            if params.nil? || params.empty?
-                return ''
-            end
+            return '' if params.nil? || params.empty?
+
             arr = []
             params.each do |key, value|
                 if !for_signature || key.downcase != Baidubce::Http::AUTHORIZATION.downcase

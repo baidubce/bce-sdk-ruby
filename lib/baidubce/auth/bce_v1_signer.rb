@@ -47,15 +47,12 @@ module Baidubce
             end
 
             def get_canonical_uri_path(path)
-                if path.to_s.empty?
-                    return '/'
-                elsif path[0] == '/'
-                    return Baidubce::Utils.url_encode_except_slash(path)
-                else
-                    return '/' + Baidubce::Utils.url_encode_except_slash(path)
-                end
+                return '/' if path.to_s.empty?
+                encoded_path = Baidubce::Utils.url_encode_except_slash(path)
+                return path[0] == '/' ? encoded_path : '/' + encoded_path
             end
 
+            # Create the authorization.
             def sign(credentials, http_method, path, headers, params,
                      timestamp=nil, expiration_in_seconds=1800, headers_to_sign=nil)
 
@@ -68,16 +65,13 @@ module Baidubce
                                                    credentials.secret_access_key, sign_key_info)
                 canonical_uri = get_canonical_uri_path(path)
                 canonical_querystring = Baidubce::Utils.get_canonical_querystring(params, true)
-                Baidubce::Log.logger.info("canonical_querystring: #{canonical_querystring}")
                 canonical_headers, headers_to_sign = get_canonical_headers(headers, headers_to_sign)
                 canonical_request = [http_method, canonical_uri, canonical_querystring, canonical_headers].join("\n")
                 signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new('sha256'),
                                                     sign_key, canonical_request)
 
-                headers_str = ""
                 headers_str = headers_to_sign.join(';') unless headers_to_sign.nil?
 
-                Baidubce::Log.logger.info("sign_key_info: #{sign_key_info}, headers_arr: #{headers_str}, signature: #{signature}")
                 sign_key_info + '/' + headers_str + '/' + signature
             end
         end

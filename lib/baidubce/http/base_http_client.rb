@@ -16,8 +16,9 @@ require 'rest-client'
 require 'time'
 require 'objspace'
 
-require_relative '../bce'
+require_relative '../version'
 require_relative '../utils'
+require_relative '../exception'
 require_relative '../log'
 require_relative 'http_headers'
 
@@ -26,10 +27,11 @@ module Baidubce
 
         class BaseHttpClient
 
-            def send_request(config, signer, http_method, path, body, headers, params)
+            # Send request to BCE services.
+            def send_request(config, signer, http_method, path, params, headers, body)
                 headers[Baidubce::Http::USER_AGENT] = sprintf(
                     'bce-sdk-ruby/%s/%s/%s',
-                    Baidubce::SDK_VERSION,
+                    Baidubce::VERSION,
                     RUBY_VERSION,
                     RUBY_PLATFORM
                 )
@@ -43,10 +45,10 @@ module Baidubce
                 url += "?#{query_str}" unless query_str.to_s.empty?
 
                  Baidubce::Log.logger.info("url: #{url}, params: #{params}")
-                 # body = body.encode('UTF-8') if body.encoding.name != 'UTF-8'
                 if body.to_s.empty?
                     headers[Baidubce::Http::CONTENT_LENGTH] = 0
                 elsif body.instance_of?(String)
+                    body = body.encode('UTF-8') if body.encoding.name != 'UTF-8'
                     headers[Baidubce::Http::CONTENT_LENGTH] = body.length
                 elsif body.instance_of?(File)
                     headers[Baidubce::Http::CONTENT_LENGTH] = body.size()
@@ -56,34 +58,25 @@ module Baidubce
                 headers[Baidubce::Http::AUTHORIZATION] = signer.sign(config.credentials, http_method,
                                                      path, headers, params)
 
-                Baidubce::Log.logger.info("headers: #{headers}")
+                Baidubce::Log.logger.debug("Request headers: #{headers}")
                 @request = RestClient::Request.new(
                     method: http_method,
                     url: url,
                     headers: headers,
                     payload: body,
-                    # block_response: block_response,
-                    open_timeout: config.connection_timeout_in_mills || 300,
-                    read_timeout: config.socket_timeout_in_mills || 300
+                    open_timeout: config.connection_timeout_in_millis,
+                    read_timeout: config.socket_timeout_in_millis
                 )
                 # handle http response, body and header
                 @request.execute do |resp, &block|
-                    Baidubce::Log.logger.info("response body: #{resp.body}")
-                    Baidubce::Log.logger.info("response headers: #{resp.headers.to_s}")
+                    Baidubce::Log.logger.debug("Response body: #{resp.body}")
+                    Baidubce::Log.logger.debug("Response headers: #{resp.headers.to_s}")
                     if resp.code >= 300
-                        raise "#{resp.code}"
+                        raise BceServerException.new(resp.code, resp.body)
                     else
                         return resp.body, resp.headers
                     end
                 end
-            end
-
-            def check_headers(headers)
-
-            end
-
-            def parse_headers(headers)
-
             end
 
         end

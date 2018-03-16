@@ -13,8 +13,8 @@
 
 $LOAD_PATH.unshift(File.expand_path("../../../lib", __FILE__))
 require 'baidubce/auth/bce_credentials'
-require 'baidubce/services/sts/sts_client'
 require 'baidubce/bce_client_configuration'
+require 'baidubce/services/sts/sts_client'
 
 credentials = Baidubce::Auth::BceCredentials.new(
     "535bebda1b894059bbe33cbedda8582e",

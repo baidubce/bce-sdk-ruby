@@ -1,6 +1,4 @@
 module Baidubce
-    VERSION = "0.1.0"
-    SDK_VERSION = '0.1.0';
     DEFAULT_SERVICE_DOMAIN = 'baidubce.com';
     URL_PREFIX = '/v1';
     DEFAULT_ENCODING = 'UTF-8';
