@@ -197,6 +197,7 @@ module Baidubce
                     Baidubce::Http::CONTENT_LENGTH => content_length,
                 }
                 headers.merge! options
+                populate_headers_with_user_metadata(headers) unless headers['user_metadata'].nil?
                 send_request(Baidubce::Http::POST, bucket_name, params, key, headers, data)
             end
 
@@ -219,6 +220,7 @@ module Baidubce
                     Baidubce::Http::CONTENT_LENGTH => content_length,
                 }
                 headers.merge! options
+                populate_headers_with_user_metadata(headers) unless headers['user_metadata'].nil?
                 send_request(Baidubce::Http::PUT, bucket_name, {}, key, headers, data)
             end
 
@@ -238,17 +240,21 @@ module Baidubce
             end
 
             # Get an authorization url with expire time.
-            def generate_pre_signed_url(bucket_name, key, options)
-                headers = options['headers']
-                params = options['params']
+            def generate_pre_signed_url(bucket_name, key, options={})
+                headers = options['headers'].nil? ? {} : options['headers']
+                params = options['params'].nil? ? {} : options['params']
+
                 path = Baidubce::Utils.append_uri("/", bucket_name, key)
-                url, host = Baidubce::Utils.parse_url_host(config)
+                url, host = Baidubce::Utils.parse_url_host(@config)
                 headers[Baidubce::Http::HOST] = host
-                params[Baidubce::Http::AUTHORIZATION] = signer.sign(config.credentials,
+                params[Baidubce::Http::AUTHORIZATION.downcase] = @signer.sign(@config.credentials,
                                                                     Baidubce::Http::GET,
                                                                     path,
                                                                     headers,
-                                                                    params)
+                                                                    params,
+                                                                    options['timestamp'],
+                                                                    options['expiration_in_seconds'] || 1800,
+                                                                    options['headers_to_sign'])
                 url = url + Baidubce::Utils.url_encode_except_slash(path)
                 query_str = Baidubce::Utils.get_canonical_querystring(params, false)
                 url += "?#{query_str}" unless query_str.to_s.empty?
@@ -262,12 +268,7 @@ module Baidubce
 
             # Copy one object to another object.
             def copy_object(source_bucket_name, source_key, target_bucket_name, target_key, options={})
-                headers = { 'etag' => options['etag'],
-                            'user_metadata' => options['user_metadata'],
-                            'content_type' => options['content_type'],
-                            'user_headers' => options['user_headers'],
-                            Baidubce::Http::BOS_STORAGE_CLASS => options['storage_class']
-                }
+                headers = options
                 headers[Baidubce::Http::BCE_COPY_SOURCE_IF_MATCH] = headers['etag'] unless headers['etag'].nil?
                 if headers['user_metadata'].nil?
                     headers[Baidubce::Http::BCE_COPY_METADATA_DIRECTIVE] = 'copy'
@@ -278,7 +279,7 @@ module Baidubce
 
                 headers[Baidubce::Http::BCE_COPY_SOURCE] =
                     Baidubce::Utils.url_encode_except_slash("/#{source_bucket_name}/#{source_key}")
-                headers.reject!{ |k, v| v.nil? }
+
                 send_request(Baidubce::Http::PUT, target_bucket_name, {}, target_key, headers)
             end
 
@@ -335,33 +336,26 @@ module Baidubce
             # Copy part.
             def upload_part_copy(source_bucket_name, source_key, target_bucket_name, target_key, upload_id,
                                  part_number, part_size, offset, options={})
+                headers = options
                 params={ partNumber: part_number, uploadId: upload_id }
-                headers = { 'etag' => options['etag'],
-                            'user_metadata' => options['user_metadata'],
-                            'content_type' => options['content_type'],
-                            'user_headers' => options['user_headers'],
-                            Baidubce::Http::BOS_STORAGE_CLASS => options['storage_class']
-                }
+
+                populate_headers_with_user_metadata(headers) unless headers['user_metadata'].nil?
                 headers[Baidubce::Http::BCE_COPY_SOURCE_IF_MATCH] = headers['etag'] unless headers['etag'].nil?
                 headers[Baidubce::Http::BCE_COPY_SOURCE_RANGE] = sprintf("bytes=%d-%d", offset, offset + part_size - 1)
                 headers[Baidubce::Http::BCE_COPY_SOURCE] =
                     Baidubce::Utils.url_encode_except_slash("/#{source_bucket_name}/#{source_key}")
-                headers.reject!{ |k, v| v.nil? }
                 send_request(Baidubce::Http::PUT, target_bucket_name, params, target_key, headers)
 
             end
 
             # After finish all the task, complete multi_upload_file.
             def complete_multipart_upload(bucket_name, key,upload_id, part_list, options={})
-                headers = { 'etag' => options['etag'],
-                            'user_metadata' => options['user_metadata'],
-                            'content_type' => options['content_type'],
-                            'user_headers' => options['user_headers'],
-                            Baidubce::Http::BOS_STORAGE_CLASS => options['storage_class']
-                }
-                part_list.each { |part| part[:eTag].gsub!("\"", "") }
-                body = { parts: part_list }.to_json
+                headers = options
                 params = { uploadId: upload_id }
+
+                populate_headers_with_user_metadata(headers) unless headers['user_metadata'].nil?
+                part_list.each { |part| part['eTag'].gsub!("\"", "") }
+                body = { parts: part_list }.to_json
                 send_request(Baidubce::Http::POST, bucket_name, params, key, headers, body)
             end
 
@@ -453,6 +447,7 @@ module Baidubce
                 if meta_size > Baidubce::MAX_USER_METADATA_SIZE
                     raise BceClientException.new("Metadata size should not be greater than #{Baidubce::MAX_USER_METADATA_SIZE}")
                 end
+                headers.delete('user_metadata')
             end
 
         end

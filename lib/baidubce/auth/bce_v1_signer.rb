@@ -71,7 +71,6 @@ module Baidubce
                                                     sign_key, canonical_request)
 
                 headers_str = headers_to_sign.join(';') unless headers_to_sign.nil?
-
                 sign_key_info + '/' + headers_str + '/' + signature
             end
         end

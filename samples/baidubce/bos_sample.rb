@@ -21,20 +21,8 @@ require 'baidubce/log'
 
 # debug
 credentials = Baidubce::Auth::BceCredentials.new(
-    "535bebda1b894059bbe33cbedda8582e",
-    "a084c2f4e38b459f81da71409826cedb"
-)
-
-conf = Baidubce::BceClientConfiguration.new(
-    credentials,
-    "10.210.74.16:8998"
-)
-
-=begin
-# online
-credentials = Baidubce::Auth::BceCredentials.new(
-    "415ce912032743dfb560f7b8534351a8",
-    "a546890875c2468bb59dcb7669dc9b7f"
+    "your ak",
+    "your sk"
 )
 
 conf = Baidubce::BceClientConfiguration.new(
@@ -42,7 +30,6 @@ conf = Baidubce::BceClientConfiguration.new(
     "http://bj.bcebos.com"
 )
 
-=end
 client = Baidubce::Services::BosClient.new(conf)
 
 bucket_name = "ruby-test-bucket"
@@ -59,12 +46,12 @@ def demo(msg)
   puts
 end
 
-=begin
 demo "list buckets" do
     puts client.list_buckets()
 end
 
 demo "delete bucket" do
+    # Only can delete the bucket you are owner and it is not empty.
     puts client.delete_bucket("test-bucket") if client.does_bucket_exist("test-bucket")
 end
 
@@ -178,17 +165,20 @@ end
 
 demo "put object" do
 
+    user_metadata = { "key1" => "value1" }
     options = { Baidubce::Http::CONTENT_TYPE => 'string',
-                "x-bce-meta-key1" => "value1",
-                'Content-Disposition' => 'inline'
+                "key1" => "value1",
+                'Content-Disposition' => 'inline',
+                'user_metadata' => user_metadata
     }
 
     client.put_object_from_string(bucket_name, "obj.txt", "obj", options)
     puts client.get_object_as_string(bucket_name, "obj.txt")
     client.get_object_to_file(bucket_name, "obj.txt", "obj_file.txt")
 
-    client.put_object_from_file(bucket_name, "obj_file.txt", "obj.txt", options)
-    puts client.get_object_as_string(bucket_name, "obj.txt")
+    # put cold storage class object
+    client.put_object_from_file(bucket_name, "obj_cold.txt", "obj.txt", 'x-bce-storage-class' => 'COLD')
+    puts client.get_object_as_string(bucket_name, "obj_cold.txt")
 end
 
 demo "list objects" do
@@ -201,18 +191,6 @@ demo "list objects" do
     puts client.list_objects(bucket_name, options)
 end
 
-demo "copy object" do
-    user_metadata = { "key1" => "value1" }
-
-    options = { Baidubce::Http::CONTENT_TYPE => 'string',
-                Baidubce::Http::CONTENT_MD5 => 'kkkkkkkk',
-                'user_metadata' => user_metadata
-    }
-    client.copy_object(bucket_name, "obj.txt", bucket_name, 'obj2.txt', options)
-    puts client.get_object_meta_data(bucket_name, "obj2.txt")
-end
-
-=end
 demo "get object" do
     puts client.put_object_from_string(bucket_name, "obj.txt", "object%123456")
     puts client.get_object_as_string(bucket_name, "obj.txt", [0,2])
@@ -242,11 +220,25 @@ end
 
 demo "generate pre signed url" do
 
-    # 超时参数设置
-    # key需要是sym
+    options = { 'expiration_in_seconds' => 60,
+                'timestamp' => Time.now.to_i,
+                'headers_to_sign' => ["host", "content-md5", "content-length"]
+    }
+
+    puts client.generate_pre_signed_url(bucket_name, 'obj.txt', options)
 end
 
-=begin
+demo "copy object" do
+    user_metadata = { "key1" => "value1" }
+
+    options = { Baidubce::Http::CONTENT_TYPE => 'string',
+                Baidubce::Http::CONTENT_MD5 => 'kkkkkkkk',
+                'user_metadata' => user_metadata
+    }
+    client.copy_object(bucket_name, "obj.txt", bucket_name, 'obj2.txt', options)
+    puts client.get_object_meta_data(bucket_name, "obj2.txt")
+end
+
 demo "set/get/delete object acl" do
     # puts "before set object acl"
     key = "obj.txt"
@@ -307,7 +299,12 @@ demo "multi-upload" do
     puts client.list_parts(bucket_name, key, upload_id)
 
     # SuperFile step 3: complete multi-upload
-    client.complete_multipart_upload(bucket_name, key, upload_id, part_list)
+    user_metadata = { "key1" => "value1" }
+    options = {
+        'user_metadata' => user_metadata
+    }
+
+    client.complete_multipart_upload(bucket_name, key, upload_id, part_list, options)
 
 end
 
@@ -343,11 +340,15 @@ demo "multi-copy" do
 
     # list parts
     puts "------------------ list parts ---------------"
-    puts client.list_parts(bucket_name, key, upload_id)
+    puts client.list_parts(bucket_name, key+"_copy", upload_id)
 
     # SuperFile step 3: complete multi-upload
-    metadata = { meta_key: 'meta_value'}
-    client.complete_multipart_upload(bucket_name, key+"_copy", upload_id, part_list, user_metadata: metadata)
+
+    user_metadata = { "key1" => "value1" }
+    options = {
+        'user_metadata' => user_metadata
+    }
+    client.complete_multipart_upload(bucket_name, key+"_copy", upload_id, part_list, options)
 end
 
 demo "abort-multi-upload" do
@@ -361,4 +362,3 @@ demo "abort-multi-upload" do
     # abort multi-upload
     client.abort_multipart_upload(bucket_name, key + "_abort", upload_id_abort)
 end
-=end

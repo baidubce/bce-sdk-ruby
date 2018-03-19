@@ -17,18 +17,16 @@ require 'baidubce/bce_client_configuration'
 require 'baidubce/services/sts/sts_client'
 
 credentials = Baidubce::Auth::BceCredentials.new(
-    "535bebda1b894059bbe33cbedda8582e",
-    "a084c2f4e38b459f81da71409826cedb"
+    "your ak",
+    "your sk"
 )
 
 conf = Baidubce::BceClientConfiguration.new(
     credentials,
-    "nmg02-bce-test6.nmg02.baidu.com:8586"
+    "http://sts.bj.baidubce.com"
 )
 
 sts_client = Baidubce::Services::StsClient.new(conf)
-
-# bucket_name = "ruby-test-bucket"
 
 def demo(msg)
   puts "--------- #{msg} --------"
