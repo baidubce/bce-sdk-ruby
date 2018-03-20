@@ -13,7 +13,9 @@
 # This module provide base class for BCE service clients.
 
 require_relative 'auth/bce_v1_signer'
+require_relative 'auth/bce_credentials'
 require_relative 'http/base_http_client'
+require_relative 'bce_client_configuration'
 
 module Baidubce
 

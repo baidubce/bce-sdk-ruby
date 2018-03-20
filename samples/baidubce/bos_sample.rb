@@ -13,16 +13,12 @@
 
 $LOAD_PATH.unshift(File.expand_path("../../../lib", __FILE__))
 
-require 'baidubce/auth/bce_credentials'
-require 'baidubce/bce_client_configuration'
 require 'baidubce/services/bos/bos_client'
-require 'baidubce/http/http_headers'
-require 'baidubce/log'
 
 # debug
 credentials = Baidubce::Auth::BceCredentials.new(
-    "your ak",
-    "your sk"
+    # "your ak",
+    # "your sk"
 )
 
 conf = Baidubce::BceClientConfiguration.new(

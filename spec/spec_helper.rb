@@ -1,7 +1,5 @@
 require "bundler/setup"
-
-require "baidubce/utils"
-require "baidubce/auth/bce_v1_signer"
+require 'baidubce/services/bos/bos_client'
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

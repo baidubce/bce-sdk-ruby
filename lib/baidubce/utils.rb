@@ -34,7 +34,7 @@ module Baidubce
             raise "Invalid endpoint #{endpoint}, unsupported scheme #{scheme}." if scheme != "http" && protocol != 'https'
             host = parsed_endpoint.host
             port = parsed_endpoint.port
-            host += ":#{port}" unless scheme == 'http' && port == 80 || scheme == 'http' && port == 80
+            host += ":#{port}" unless scheme == 'http' && port == 80 || scheme == 'https' && port == 443
             return "#{scheme}://#{host}", host
         end
 

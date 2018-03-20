@@ -15,11 +15,6 @@
 require 'json'
 
 require_relative '../../bce_base_client'
-require_relative '../../utils'
-require_relative '../../bce'
-require_relative '../../http/http_methods'
-require_relative '../../http/http_headers'
-require_relative '../../http/http_content_types'
 
 module Baidubce
     module Services

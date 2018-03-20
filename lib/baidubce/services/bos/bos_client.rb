@@ -17,12 +17,6 @@ require 'digest/md5'
 require 'mimemagic'
 
 require_relative '../../bce_base_client'
-require_relative '../../utils'
-require_relative '../../bce'
-require_relative '../../exception'
-require_relative '../../http/http_methods'
-require_relative '../../http/http_headers'
-require_relative '../../http/http_content_types'
 
 module Baidubce
     module Services
@@ -414,9 +408,7 @@ module Baidubce
             end
 
             def generate_response(headers, body)
-                if body.nil? || body.length == 0
-                    return headers
-                end
+                return headers if body.to_s.empty?
                 ret = JSON.parse(body)
                 return ret
                 rescue JSON::ParserError

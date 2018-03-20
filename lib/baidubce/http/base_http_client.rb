@@ -20,7 +20,10 @@ require_relative '../version'
 require_relative '../utils'
 require_relative '../exception'
 require_relative '../log'
-require_relative 'http_headers'
+require_relative '../bce'
+require_relative 'http_methods'
+require_relative 'http_content_types'
+
 
 module Baidubce
     module Http

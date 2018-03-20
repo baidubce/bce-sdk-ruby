@@ -12,8 +12,7 @@
 # Samples for sts client.
 
 $LOAD_PATH.unshift(File.expand_path("../../../lib", __FILE__))
-require 'baidubce/auth/bce_credentials'
-require 'baidubce/bce_client_configuration'
+
 require 'baidubce/services/sts/sts_client'
 
 credentials = Baidubce::Auth::BceCredentials.new(

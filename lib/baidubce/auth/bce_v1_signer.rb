@@ -15,9 +15,7 @@
 require 'time'
 require 'openssl'
 
-require_relative '../http/http_headers'
 require_relative '../utils'
-require_relative '../log'
 
 module Baidubce
     module Auth
@@ -25,7 +23,7 @@ module Baidubce
 
             def get_canonical_headers(headers, headers_to_sign = nil)
                 default = false
-                if headers_to_sign.nil? || headers_to_sign.empty?
+                if headers_to_sign.to_a.empty?
                     default = true
                     headers_to_sign = ["host", "content-md5", "content-length", "content-type"]
                 end
