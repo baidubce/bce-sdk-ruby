@@ -14,18 +14,23 @@
 $LOAD_PATH.unshift(File.expand_path("../../../lib", __FILE__))
 
 require 'baidubce/services/sts/sts_client'
+require 'baidubce/services/bos/bos_client'
 
 credentials = Baidubce::Auth::BceCredentials.new(
-    "your ak",
-    "your sk"
+    # "your ak",
+    # "your sk"
 )
 
-conf = Baidubce::BceClientConfiguration.new(
+sts_conf = Baidubce::BceClientConfiguration.new(
     credentials,
     "http://sts.bj.baidubce.com"
 )
 
-sts_client = Baidubce::Services::StsClient.new(conf)
+sts_client = Baidubce::Services::StsClient.new(sts_conf)
+
+# log config
+Baidubce::Log.set_log_file("./test.log")
+Baidubce::Log.set_log_level(Logger::DEBUG)
 
 def demo(msg)
   puts "--------- #{msg} --------"
@@ -44,14 +49,34 @@ demo 'sts client' do
                     service: 'bce:bos',
                     region: 'bj',
                     effect: 'Allow',
-                    resource: ["bos-demo/*"],
+                    resource: ["bos-demo"],
                     permission: ["READ"]
                 }
             ]
     }
 
     # puts sts_client.get_session_token(acl, 1024)
-    puts sts_client.get_session_token(acl)
+    sts_response = sts_client.get_session_token(acl)
     # durationSeconds为非int值，会使用默认的12小时作为失效时间
     # puts sts_client.get_session_token(acl, "test")
+    
+    # 使用获取到的ak, sk, token新建BosClient访问BOS
+    sts_ak = sts_response["accessKeyId"]
+    sts_sk = sts_response['secretAccessKey']
+    token = sts_response['sessionToken']
+
+    sts_credentials = Baidubce::Auth::BceCredentials.new(
+        sts_ak,
+        sts_sk
+    )
+
+    conf = Baidubce::BceClientConfiguration.new(
+        sts_credentials,
+        "http://bj.bcebos.com",
+        token
+    )
+
+    client = Baidubce::Services::BosClient.new(conf)
+
+    puts client.get_bucket_location('bos-demo')
 end

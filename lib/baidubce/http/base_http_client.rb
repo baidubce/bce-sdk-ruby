@@ -17,51 +17,53 @@ require 'time'
 require 'objspace'
 
 require_relative '../version'
-require_relative '../utils'
 require_relative '../exception'
-require_relative '../log'
+require_relative '../utils/utils'
+require_relative '../utils/log'
 require_relative '../bce'
-require_relative 'http_methods'
-require_relative 'http_content_types'
-
+require_relative 'http_constants'
 
 module Baidubce
     module Http
 
         class BaseHttpClient
 
+            include Log
             # Send request to BCE services.
             def send_request(config, signer, http_method, path, params, headers, body)
-                headers[Baidubce::Http::USER_AGENT] = sprintf(
+                headers[USER_AGENT] = sprintf(
                     'bce-sdk-ruby/%s/%s/%s',
-                    Baidubce::VERSION,
+                    VERSION,
                     RUBY_VERSION,
                     RUBY_PLATFORM
                 )
 
-                headers[Baidubce::Http::BCE_DATE] = Time.now.utc.iso8601 unless headers.has_key?(Baidubce::Http::BCE_DATE)
+                headers[BCE_DATE] = Time.now.utc.iso8601 unless headers.has_key?(BCE_DATE)
 
-                url, host = Baidubce::Utils.parse_url_host(config)
-                headers[Baidubce::Http::HOST] = host
-                url = url + Baidubce::Utils.url_encode_except_slash(path)
-                query_str = Baidubce::Utils.get_canonical_querystring(params, false)
+                url, host = Utils.parse_url_host(config)
+                headers[HOST] = host
+                url = url + Utils.url_encode_except_slash(path)
+                query_str = Utils.get_canonical_querystring(params, false)
                 url += "?#{query_str}" unless query_str.to_s.empty?
 
-                 Baidubce::Log.logger.info("url: #{url}, params: #{params}")
+                logger.info("url: #{url}, params: #{params}")
                 if body.to_s.empty?
-                    headers[Baidubce::Http::CONTENT_LENGTH] = 0
+                    headers[CONTENT_LENGTH] = 0
                 elsif body.instance_of?(String)
                     body = body.encode('UTF-8') if body.encoding.name != 'UTF-8'
-                    headers[Baidubce::Http::CONTENT_LENGTH] = body.length
+                    headers[CONTENT_LENGTH] = body.length
                 elsif body.instance_of?(File)
-                    headers[Baidubce::Http::CONTENT_LENGTH] = body.size()
+                    headers[CONTENT_LENGTH] = body.size()
                 else
-                    headers[Baidubce::Http::CONTENT_LENGTH] = ObjectSpace.memsize_of(body)
+                    headers[CONTENT_LENGTH] = ObjectSpace.memsize_of(body)
                 end
-                headers[Baidubce::Http::AUTHORIZATION] = signer.sign(config.credentials, http_method,
+
+                headers[STS_SECURITY_TOKEN] = config.security_token unless config.security_token.to_s.empty?
+
+                headers[AUTHORIZATION] = signer.sign(config.credentials, http_method,
                                                      path, headers, params)
 
-                Baidubce::Log.logger.debug("Request headers: #{headers}")
+                logger.debug("Request headers: #{headers}")
                 @request = RestClient::Request.new(
                     method: http_method,
                     url: url,
@@ -72,8 +74,8 @@ module Baidubce
                 )
                 # handle http response, body and header
                 @request.execute do |resp, &block|
-                    Baidubce::Log.logger.debug("Response body: #{resp.body}")
-                    Baidubce::Log.logger.debug("Response headers: #{resp.headers.to_s}")
+                    logger.debug("Response body: #{resp.body}")
+                    logger.debug("Response headers: #{resp.headers.to_s}")
                     if resp.code >= 300
                         raise BceServerException.new(resp.code, resp.body)
                     else

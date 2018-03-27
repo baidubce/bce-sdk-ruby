@@ -14,8 +14,9 @@
 
 require "ERB"
 require "uri"
+require 'json'
 
-require_relative "http/http_headers"
+require_relative "../http/http_constants"
 
 module Baidubce
 
@@ -63,7 +64,7 @@ module Baidubce
 
             arr = []
             params.each do |key, value|
-                if !for_signature || key.downcase != Baidubce::Http::AUTHORIZATION.downcase
+                if !for_signature || key.downcase != Http::AUTHORIZATION.downcase
                     value = '' if value.nil?
                     str = ERB::Util.url_encode(key) + "=" + ERB::Util.url_encode(value)
                     arr << str
@@ -72,6 +73,15 @@ module Baidubce
             arr.sort!
             arr.join("&")
         end
+
+        def self.generate_response(headers, body)
+            return headers if body.to_s.empty?
+            ret = JSON.parse(body)
+            return ret
+            rescue JSON::ParserError
+            return body
+        end
+
     end
 
 end

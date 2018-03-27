@@ -21,13 +21,16 @@ module Baidubce
 
     class BceBaseClient
 
+        include Http
+        include Auth
+
         def initialize(config, service_id="", region_supported=true)
             @config = config
             @service_id = service_id
             @region_supported = region_supported
             @config.endpoint = compute_endpoint if @config.endpoint.nil?
-            @http_client = Baidubce::Http::BaseHttpClient.new()
-            @signer = Baidubce::Auth::BceV1Signer.new()
+            @http_client = BaseHttpClient.new()
+            @signer = BceV1Signer.new()
         end
 
         def compute_endpoint

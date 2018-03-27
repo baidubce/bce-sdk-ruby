@@ -10,12 +10,23 @@
 # either express or implied. See the License for the specific language governing permissions
 # and limitations under the License.
 
-# This module defines string constants for HTTP headers
+# This module defines string constants for HTTP
 
-# Standard HTTP Headers
 module Baidubce
     module Http
 
+        # HTTP Content Types
+        JSON_TYPE         = 'application/json; charset=utf-8'
+        OCTET_STREAM_TYPE = 'application/octet-stream'
+
+        # HTTP Methods
+        GET    = 'GET'
+        PUT    = 'PUT'
+        POST   = 'POST'
+        DELETE = 'DELETE'
+        HEAD   = 'HEAD'
+
+        # HTTP Headers
         AUTHORIZATION = "Authorization"
 
         CACHE_CONTROL = "Cache-Control"

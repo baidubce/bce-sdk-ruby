@@ -15,7 +15,7 @@
 require 'time'
 require 'openssl'
 
-require_relative '../utils'
+require_relative '../utils/utils'
 
 module Baidubce
     module Auth
@@ -33,7 +33,7 @@ module Baidubce
                 headers.each do |key, value|
                     next if value.to_s.strip.empty?
                     if headers_to_sign.include?(key.downcase) ||
-                            (default && key.downcase.to_s.start_with?(Baidubce::Http::BCE_PREFIX))
+                            (default && key.downcase.to_s.start_with?(Http::BCE_PREFIX))
                         str = ERB::Util.url_encode(key.downcase) + ":" + ERB::Util.url_encode(value.to_s.strip)
                         ret_arr << str
                         headers_arr << key.downcase
@@ -46,7 +46,7 @@ module Baidubce
 
             def get_canonical_uri_path(path)
                 return '/' if path.to_s.empty?
-                encoded_path = Baidubce::Utils.url_encode_except_slash(path)
+                encoded_path = Utils.url_encode_except_slash(path)
                 return path[0] == '/' ? encoded_path : '/' + encoded_path
             end
 
@@ -62,7 +62,7 @@ module Baidubce
                 sign_key = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new('sha256'),
                                                    credentials.secret_access_key, sign_key_info)
                 canonical_uri = get_canonical_uri_path(path)
-                canonical_querystring = Baidubce::Utils.get_canonical_querystring(params, true)
+                canonical_querystring = Utils.get_canonical_querystring(params, true)
                 canonical_headers, headers_to_sign = get_canonical_headers(headers, headers_to_sign)
                 canonical_request = [http_method, canonical_uri, canonical_querystring, canonical_headers].join("\n")
                 signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new('sha256'),

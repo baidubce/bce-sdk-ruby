@@ -15,24 +15,26 @@ $LOAD_PATH.unshift(File.expand_path("../../../lib", __FILE__))
 
 require 'baidubce/services/bos/bos_client'
 
+include Baidubce
+
 # debug
-credentials = Baidubce::Auth::BceCredentials.new(
+credentials = Auth::BceCredentials.new(
     # "your ak",
     # "your sk"
 )
 
-conf = Baidubce::BceClientConfiguration.new(
+conf = BceClientConfiguration.new(
     credentials,
     "http://bj.bcebos.com"
 )
 
-client = Baidubce::Services::BosClient.new(conf)
+client = Services::BosClient.new(conf)
 
 bucket_name = "ruby-test-bucket"
 
 # log config
-Baidubce::Log.set_log_file("./test.log")
-Baidubce::Log.set_log_level(Logger::DEBUG)
+Log.set_log_file("./test.log")
+Log.set_log_level(Logger::DEBUG)
 
 def demo(msg)
   puts "--------- #{msg} --------"
@@ -47,8 +49,8 @@ demo "list buckets" do
 end
 
 demo "delete bucket" do
-    # Only can delete the bucket you are owner and it is not empty.
-    puts client.delete_bucket("test-bucket") if client.does_bucket_exist("test-bucket")
+    # Only can delete the bucket you are owner and it is empty.
+    # puts client.delete_bucket("test-bucket") if client.does_bucket_exist("test-bucket")
 end
 
 demo "create bucket" do
@@ -162,7 +164,7 @@ end
 demo "put object" do
 
     user_metadata = { "key1" => "value1" }
-    options = { Baidubce::Http::CONTENT_TYPE => 'string',
+    options = { Http::CONTENT_TYPE => 'string',
                 "key1" => "value1",
                 'Content-Disposition' => 'inline',
                 'user_metadata' => user_metadata
@@ -227,8 +229,8 @@ end
 demo "copy object" do
     user_metadata = { "key1" => "value1" }
 
-    options = { Baidubce::Http::CONTENT_TYPE => 'string',
-                Baidubce::Http::CONTENT_MD5 => 'kkkkkkkk',
+    options = { Http::CONTENT_TYPE => 'string',
+                Http::CONTENT_MD5 => 'kkkkkkkk',
                 'user_metadata' => user_metadata
     }
     client.copy_object(bucket_name, "obj.txt", bucket_name, 'obj2.txt', options)

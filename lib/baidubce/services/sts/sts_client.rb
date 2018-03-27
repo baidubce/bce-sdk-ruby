@@ -12,14 +12,12 @@
 
 # This module provides a client for STS.
 
-require 'json'
-
 require_relative '../../bce_base_client'
 
 module Baidubce
     module Services
 
-        class StsClient < Baidubce::BceBaseClient
+        class StsClient < BceBaseClient
 
             STS_URL_PREFIX = "/";
             GET_SESSION_TOKEN_VERSION = "v1";
@@ -27,10 +25,11 @@ module Baidubce
 
             def get_session_token(acl, duration_seconds=nil)
                 params = duration_seconds.nil? ? {} : { durationSeconds: duration_seconds }
-                headers = { Baidubce::Http::CONTENT_TYPE => Baidubce::Http::JSON }
+                headers = { CONTENT_TYPE => JSON_TYPE }
                 body = acl.to_json
-                path = Baidubce::Utils.append_uri(STS_URL_PREFIX, GET_SESSION_TOKEN_VERSION, GET_SESSION_TOKEN_PATH)
-                @http_client.send_request(@config, @signer, Baidubce::Http::POST, path, params, headers, body)
+                path = Utils.append_uri(STS_URL_PREFIX, GET_SESSION_TOKEN_VERSION, GET_SESSION_TOKEN_PATH)
+                body, headers = @http_client.send_request(@config, @signer, POST, path, params, headers, body)
+                Utils.generate_response(headers, body)
             end
 
         end

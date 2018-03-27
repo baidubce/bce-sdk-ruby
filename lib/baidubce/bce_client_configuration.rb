@@ -22,22 +22,23 @@ module Baidubce
     DEFAULT_RECV_BUF_SIZE = 10 * 1024 * 1024
 
     class BceClientConfiguration
-        attr_accessor :credentials, :endpoint, :protocol, :region, :connection_timeout_in_millis,
-                      :socket_timeout_in_millis, :send_buf_size, :recv_buf_size, :retry_policy, :security_token
+        attr_accessor :credentials, :endpoint, :security_token, :protocol, :region, :connection_timeout_in_millis,
+                      :socket_timeout_in_millis, :send_buf_size, :recv_buf_size, :retry_policy
 
         def initialize(credentials,
                        endpoint,
+                       security_token="",
                        protocol=DEFAULT_PROTOCOL,
                        region=DEFAULT_REGION,
                        connection_timeout_in_millis=DEFAULT_CONNECTION_TIMEOUT_IN_MILLIS,
                        socket_timeout_in_millis=DEFAULT_SOCKET_TIMEOUT_IN_MILLIS,
                        send_buf_size=DEFAULT_SEND_BUF_SIZE,
                        recv_buf_size=DEFAULT_RECV_BUF_SIZE,
-                       retry_policy=0,
-                       security_token="")
+                       retry_policy=0)
 
             @credentials = credentials
             @endpoint = endpoint
+            @security_token = security_token
             @protocol = protocol
             @region = region
             @connection_timeout_in_millis = connection_timeout_in_millis
@@ -45,7 +46,6 @@ module Baidubce
             @send_buf_size = send_buf_size
             @recv_buf_size = recv_buf_size
             @retry_policy = retry_policy
-            @security_token = security_token
         end
 
     end

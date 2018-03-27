@@ -5,7 +5,7 @@ module Baidubce
     RSpec.describe Utils do
 
         it "parse url host" do
-            bce_credentials = Baidubce::Auth::BceCredentials.new("your ak", "your sk")
+            bce_credentials = Auth::BceCredentials.new("your ak", "your sk")
             endpoint = "http://bj.bcebos.com"
             conf = BceClientConfiguration.new(bce_credentials, endpoint)
 
@@ -57,6 +57,29 @@ module Baidubce
 
             query_str = Utils.get_canonical_querystring(params, true)
             expect(query_str).to eq("A=%E4%B8%AD%E6%96%87value&b=")
+
+        end
+
+        it "generate response from headers and body" do
+
+            headers = { :date=>"Mon, 19 Mar 2018 08:40:34 GMT",
+                        :content_type=>"application/json;" }
+
+            body = '{"bucket":"ruby-test-bucket","key":"multi_file_abort",
+                         "uploadId":"ed26564508494f40113dc2ddea3bb973"}'
+
+            resp = Utils.generate_response(headers, body)
+            expected_body = { "bucket"=>"ruby-test-bucket", "key"=>"multi_file_abort",
+                              "uploadId"=>"ed26564508494f40113dc2ddea3bb973" }
+            expect(resp).to eq(expected_body)
+
+            body = ''
+            resp = Utils.generate_response(headers, body)
+            expect(resp).to eq(headers)
+
+            body = nil
+            resp = Utils.generate_response(headers, body)
+            expect(resp).to eq(headers)
 
         end
 

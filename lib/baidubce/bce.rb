@@ -1,6 +1,5 @@
 module Baidubce
     DEFAULT_SERVICE_DOMAIN = 'baidubce.com';
-    URL_PREFIX = '/v1';
     DEFAULT_ENCODING = 'UTF-8';
 
     MAX_PUT_OBJECT_LENGTH = 5 * 1024 * 1024 * 1024
