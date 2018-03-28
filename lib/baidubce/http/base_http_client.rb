@@ -18,6 +18,7 @@ require 'objspace'
 
 require_relative '../version'
 require_relative '../exception'
+require_relative '../retry_policy'
 require_relative '../utils/utils'
 require_relative '../utils/log'
 require_relative '../bce'
@@ -38,7 +39,8 @@ module Baidubce
                     RUBY_PLATFORM
                 )
 
-                headers[BCE_DATE] = Time.now.utc.iso8601 unless headers.has_key?(BCE_DATE)
+                should_get_new_date = false
+                should_get_new_date = true unless headers.has_key?(BCE_DATE)
 
                 url, host = Utils.parse_url_host(config)
                 headers[HOST] = host
@@ -60,28 +62,42 @@ module Baidubce
 
                 headers[STS_SECURITY_TOKEN] = config.security_token unless config.security_token.to_s.empty?
 
-                headers[AUTHORIZATION] = signer.sign(config.credentials, http_method,
-                                                     path, headers, params)
+                retries_attempted = 0
+                while true
+                    headers[BCE_DATE] = Time.now.utc.iso8601 if should_get_new_date
+                    headers[AUTHORIZATION] = signer.sign(config.credentials, http_method,
+                                                         path, headers, params)
 
-                logger.debug("Request headers: #{headers}")
-                @request = RestClient::Request.new(
-                    method: http_method,
-                    url: url,
-                    headers: headers,
-                    payload: body,
-                    open_timeout: config.connection_timeout_in_millis,
-                    read_timeout: config.socket_timeout_in_millis
-                )
-                # handle http response, body and header
-                @request.execute do |resp, &block|
-                    logger.debug("Response body: #{resp.body}")
-                    logger.debug("Response headers: #{resp.headers.to_s}")
-                    if resp.code >= 300
-                        raise BceServerException.new(resp.code, resp.body)
-                    else
+                    logger.debug("Request headers: #{headers}")
+                    @request = RestClient::Request.new(
+                        method: http_method,
+                        url: url,
+                        headers: headers,
+                        payload: body,
+                        open_timeout: config.open_timeout_in_millis / 1000.0,
+                        read_timeout: config.read_timeout_in_millis / 1000.0
+                    )
+
+                    begin
+                        resp = @request.execute
+                        logger.debug("Response code: #{resp.code}")
+                        logger.debug("Response headers: #{resp.headers.to_s}")
+                        # logger.debug("Response body: #{resp.body}")
                         return resp.body, resp.headers
+                    rescue RestClient::ExceptionWithResponse => err
+                        logger.debug("ExceptionWithResponse: #{err.http_code}, #{err.http_body}, #{err.message}")
+                        if config.retry_policy.should_retry(err, retries_attempted)
+                            delay_in_millis = config.retry_policy.get_delay_before_next_retry_in_millis(
+                                err, retries_attempted)
+                            sleep(delay_in_millis / 1000.0)
+                        else
+                            raise BceServerException.new(err.http_code, err.message + ", " + err.http_body)
+                        end
                     end
+
+                    retries_attempted += 1
                 end
+
             end
 
         end

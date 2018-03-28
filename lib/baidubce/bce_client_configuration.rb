@@ -12,40 +12,36 @@
 
 # This module defines a common configuration class for BCE.
 
+require_relative 'retry_policy'
+
 module Baidubce
 
     DEFAULT_PROTOCOL = "http"
     DEFAULT_REGION = "bj"
-    DEFAULT_CONNECTION_TIMEOUT_IN_MILLIS = 50 * 1000
-    DEFAULT_SOCKET_TIMEOUT_IN_MILLIS = 50 * 1000
+    DEFAULT_OPEN_TIMEOUT_IN_MILLIS = 60 * 1000
+    DEFAULT_READ_TIMEOUT_IN_MILLIS = 60 * 1000
     DEFAULT_SEND_BUF_SIZE = 1024 * 1024
     DEFAULT_RECV_BUF_SIZE = 10 * 1024 * 1024
 
     class BceClientConfiguration
-        attr_accessor :credentials, :endpoint, :security_token, :protocol, :region, :connection_timeout_in_millis,
-                      :socket_timeout_in_millis, :send_buf_size, :recv_buf_size, :retry_policy
+        attr_accessor :credentials, :endpoint, :security_token, :protocol, :region, :open_timeout_in_millis,
+                      :read_timeout_in_millis, :send_buf_size, :recv_buf_size, :retry_policy
 
         def initialize(credentials,
                        endpoint,
-                       security_token="",
-                       protocol=DEFAULT_PROTOCOL,
-                       region=DEFAULT_REGION,
-                       connection_timeout_in_millis=DEFAULT_CONNECTION_TIMEOUT_IN_MILLIS,
-                       socket_timeout_in_millis=DEFAULT_SOCKET_TIMEOUT_IN_MILLIS,
-                       send_buf_size=DEFAULT_SEND_BUF_SIZE,
-                       recv_buf_size=DEFAULT_RECV_BUF_SIZE,
-                       retry_policy=0)
+                       options={})
 
             @credentials = credentials
             @endpoint = endpoint
-            @security_token = security_token
-            @protocol = protocol
-            @region = region
-            @connection_timeout_in_millis = connection_timeout_in_millis
-            @socket_timeout_in_millis = socket_timeout_in_millis
-            @send_buf_size = send_buf_size
-            @recv_buf_size = recv_buf_size
-            @retry_policy = retry_policy
+            @security_token = options['security_token'] || ""
+            @protocol = options['protocol'] || DEFAULT_PROTOCOL
+            @region = options['region'] || DEFAULT_REGION
+            @open_timeout_in_millis = options['open_timeout_in_millis'] ||
+                DEFAULT_OPEN_TIMEOUT_IN_MILLIS
+            @read_timeout_in_millis = options['read_timeout_in_millis'] || DEFAULT_READ_TIMEOUT_IN_MILLIS
+            @send_buf_size = options['send_buf_size'] || DEFAULT_SEND_BUF_SIZE
+            @recv_buf_size = options['recv_buf_size'] || DEFAULT_RECV_BUF_SIZE
+            @retry_policy = options['retry_policy'] || BackOffRetryPolicy.new
         end
 
     end
