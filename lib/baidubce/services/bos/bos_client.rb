@@ -12,7 +12,6 @@
 
 # This module provides a client class for BOS.
 
-require 'digest/md5'
 require 'mimemagic'
 
 require_relative '../../bce_base_client'
@@ -159,9 +158,9 @@ module Baidubce
                 send_request(GET, bucket_name, params)
             end
 
-            def get_object(bucket_name, key, range)
+            def get_object(bucket_name, key, range, save_path=nil)
                 headers = range.nil? ? {} : get_range_header_dict(range)
-                send_request(GET, bucket_name, {}, key, headers)
+                send_request(GET, bucket_name, {}, key, headers, "", save_path)
             end
 
             # Get Content of Object and Put Content to String.
@@ -170,11 +169,8 @@ module Baidubce
             end
 
             # Get Content of Object and Put Content to File.
-            def get_object_to_file(bucket_name, key, file_name, range=nil)
-                File.open(File.expand_path(file_name), 'wb') do |f|
-                    resp = get_object(bucket_name, key, range)
-                    f.write(resp)
-                end
+            def get_object_to_file(bucket_name, key, save_path, range=nil)
+                get_object(bucket_name, key, range, save_path)
             end
 
             # Put an appendable object to BOS or add content to an appendable object.
@@ -225,10 +221,10 @@ module Baidubce
 
             # Put object and put content of file to the object.
             def put_object_from_file(bucket_name, key, file_name, options={})
-                data = File.read(file_name)
                 content_type = MimeMagic.by_path(file_name).type
                 { CONTENT_TYPE => content_type }.merge! options
-                data_md5 = Digest::MD5.base64digest(data)
+                data_md5 = Utils.get_md5_from_file(file_name, @config.recv_buf_size)
+                data = File.open(file_name)
                 put_object(bucket_name, key, data, data_md5, data.size, options)
             end
 
@@ -299,7 +295,7 @@ module Baidubce
             end
 
             # Upload a part.
-            def upload_part(bucket_name, key, upload_id, part_number, part_size, part_fp, part_md5=nil)
+            def upload_part(bucket_name, key, upload_id, part_number, part_size, part_fp=nil, part_md5=nil, &block)
                 params={ partNumber: part_number, uploadId: upload_id }
                 if part_number < MIN_PART_NUMBER || part_number > MAX_PART_NUMBER
                         raise BceClientException.new(sprintf("Invalid part_number %d. The valid range is from %d to %d.",
@@ -314,16 +310,25 @@ module Baidubce
                             CONTENT_TYPE => OCTET_STREAM_TYPE
                 }
                 headers[CONTENT_MD5] = part_md5 unless part_md5.nil?
-                send_request(POST, bucket_name, params, key, headers, part_fp)
+                send_request(POST, bucket_name, params, key, headers, part_fp, &block)
             end
 
             # Upload a part from file.
             def upload_part_from_file(bucket_name, key, upload_id, part_number,
                                       part_size, file_name, offset=0, part_md5=nil)
-                part_fp = File.open(file_name, "r")
-                part_fp.seek(offset)
-                part = part_fp.read(part_size)
-                upload_part(bucket_name, key, upload_id, part_number, part_size, part, part_md5=nil)
+
+                left_size = part_size
+                buf_size = @config.send_buf_size
+                upload_part(bucket_name, key, upload_id, part_number, part_size) do |buf_writer|
+                    File.open(file_name, "r") do |part_fp|
+                        part_fp.seek(offset)
+                        bytes_to_read = left_size > buf_size ? buf_size : left_size
+                        until left_size <= 0
+                            buf_writer << part_fp.read(bytes_to_read)
+                            left_size -= bytes_to_read
+                        end
+                    end
+                end
             end
 
             # Copy part.
@@ -399,9 +404,9 @@ module Baidubce
                 send_request(DELETE, bucket_name, params, key)
             end
 
-            def send_request(http_method, bucket_name="", params={}, key="", headers={}, body="")
+            def send_request(http_method, bucket_name="", params={}, key="", headers={}, body="", save_path=nil, &block)
                 path = Utils.append_uri("/", bucket_name, key)
-                body, headers = @http_client.send_request(@config, @signer, http_method, path, params, headers, body)
+                body, headers = @http_client.send_request(@config, @signer, http_method, path, params, headers, body, save_path, &block)
                 # Generate result from headers and body
                 Utils.generate_response(headers, body)
             end

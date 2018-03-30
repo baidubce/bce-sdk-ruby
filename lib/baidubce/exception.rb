@@ -18,3 +18,15 @@ class BceServerException < RuntimeError
 
 end
 
+class BceHttpException < RuntimeError
+    attr_accessor :http_code
+    attr_accessor :http_body
+    attr_writer :message
+
+    def initialize(http_code, http_body, message)
+        @http_code = http_code
+        @http_body = http_body
+        @message = message
+    end
+
+end

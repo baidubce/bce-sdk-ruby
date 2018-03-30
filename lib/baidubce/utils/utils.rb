@@ -15,6 +15,7 @@
 require "ERB"
 require "uri"
 require 'json'
+require 'digest/md5'
 
 require_relative "../http/http_constants"
 
@@ -72,6 +73,16 @@ module Baidubce
             end
             arr.sort!
             arr.join("&")
+        end
+
+        def self.get_md5_from_file(file_name, buf_size=8192)
+
+            md5 = Digest::MD5.new
+            buf = ""
+            File.open(file_name, 'rb') do |io|
+                md5.update(buf) while io.read(buf_size, buf)
+            end
+            md5.base64digest
         end
 
         def self.generate_response(headers, body)

@@ -20,12 +20,12 @@ module Baidubce
     class NoRetryPolicy
 
         # Always returns False.
-        def should_retry(error, retries_attempted)
+        def should_retry(http_code, retries_attempted)
             false
         end
 
         # Always returns 0.
-        def get_delay_before_next_retry_in_millis(error, retries_attempted)
+        def get_delay_before_next_retry_in_millis(retries_attempted)
             0
         end
 
@@ -57,21 +57,21 @@ module Baidubce
         end
 
         # Return true if the http client should retry the request.
-        def should_retry(error, retries_attempted)
+        def should_retry(http_code, retries_attempted)
 
             # stop retrying when the maximum number of retries is reached
             return false if retries_attempted >= @max_error_retry
 
             # Only retry on a subset of service exceptions
-            if error.http_code == 500
+            if http_code == 500
                 logger.debug('Retry for internal server error.')
                 return true
             end
-            if error.http_code == 503
+            if http_code == 503
                 logger.debug('Retry for service unavailable.')
                 return true
             end
-            if error.http_code == 408
+            if http_code == 408
                 logger.debug('Retry for request expired.')
                 return true
             end
@@ -80,7 +80,7 @@ module Baidubce
         end
 
         # Returns the delay time in milliseconds before the next retry.
-        def get_delay_before_next_retry_in_millis(error, retries_attempted)
+        def get_delay_before_next_retry_in_millis(retries_attempted)
             return 0 if retries_attempted < 0
             delay_in_millis = (1 << retries_attempted) * @base_interval_in_millis
             return @max_delay_in_millis if delay_in_millis > @max_delay_in_millis
