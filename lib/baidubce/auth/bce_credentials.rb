@@ -19,11 +19,12 @@ These credentials are used to securely sign requests to BCE services.
 module Baidubce
     module Auth
         class BceCredentials
-            attr_accessor :access_key_id, :secret_access_key
+            attr_accessor :access_key_id, :secret_access_key, :security_token
 
-            def initialize(access_key_id, secret_access_key)
+            def initialize(access_key_id, secret_access_key, security_token="")
                 @access_key_id = access_key_id
                 @secret_access_key = secret_access_key
+                @security_token = security_token
             end
         end
     end

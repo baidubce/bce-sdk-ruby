@@ -28,13 +28,12 @@ module Baidubce
             @config = config
             @service_id = service_id
             @region_supported = region_supported
-            @config.endpoint = compute_endpoint if @config.endpoint.nil?
+            @config.endpoint = compute_endpoint if @config.endpoint.to_s.empty?
             @http_client = BaseHttpClient.new()
             @signer = BceV1Signer.new()
         end
 
         def compute_endpoint
-            return @config.endpoint if !@config.endpoint.nil? && !@config.endpoint.empty?
             if @region_supported
                 return sprintf('%s://%s.%s.%s',
                                @config.protocol,

@@ -63,16 +63,12 @@ module Baidubce
             return false if retries_attempted >= @max_error_retry
 
             # Only retry on a subset of service exceptions
-            if http_code == 500
-                logger.debug('Retry for internal server error.')
-                return true
-            end
-            if http_code == 503
-                logger.debug('Retry for service unavailable.')
+            if http_code >= 500 && http_code != 501
+                logger.debug('Retry for server error.')
                 return true
             end
             if http_code == 408
-                logger.debug('Retry for request expired.')
+                logger.debug('Retry for request timeout.')
                 return true
             end
 

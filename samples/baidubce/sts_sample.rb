@@ -19,7 +19,6 @@ require 'baidubce/services/bos/bos_client'
 credentials = Baidubce::Auth::BceCredentials.new(
     # "your ak",
     # "your sk"
-
 )
 
 sts_conf = Baidubce::BceClientConfiguration.new(
@@ -68,13 +67,13 @@ demo 'sts client' do
 
     sts_credentials = Baidubce::Auth::BceCredentials.new(
         sts_ak,
-        sts_sk
+        sts_sk,
+        token
     )
 
     conf = Baidubce::BceClientConfiguration.new(
         sts_credentials,
         "http://bj.bcebos.com",
-        'security_token' => token
     )
 
     client = Baidubce::Services::BosClient.new(conf)

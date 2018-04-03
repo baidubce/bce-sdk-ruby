@@ -22,7 +22,7 @@ require_relative '../exception'
 require_relative '../retry_policy'
 require_relative '../utils/utils'
 require_relative '../utils/log'
-require_relative '../bce'
+require_relative '../bce_constants'
 require_relative 'http_constants'
 
 module Baidubce
@@ -49,7 +49,7 @@ module Baidubce
 
                 logger.info("url: #{url}, params: #{params}")
                 set_content_length_header(headers, body, &block)
-                headers[STS_SECURITY_TOKEN] = config.security_token unless config.security_token.to_s.empty?
+                headers[STS_SECURITY_TOKEN] = config.credentials.security_token unless config.credentials.security_token.to_s.empty?
 
                 retries_attempted = 0
                 while true

@@ -1,5 +1,5 @@
 class BceClientException < RuntimeError
-   attr_reader :message
+   attr_accessor :message
 
    def initialize(message)
       @message = message
@@ -8,8 +8,8 @@ class BceClientException < RuntimeError
 end
 
 class BceServerException < RuntimeError
-   attr_reader :status_code
-   attr_reader :message
+   attr_accessor :status_code
+   attr_accessor :message
 
    def initialize(status_code, message)
       @status_code = status_code
@@ -21,7 +21,7 @@ end
 class BceHttpException < RuntimeError
     attr_accessor :http_code
     attr_accessor :http_body
-    attr_writer :message
+    attr_accessor :message
 
     def initialize(http_code, http_body, message)
         @http_code = http_code

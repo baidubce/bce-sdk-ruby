@@ -19,6 +19,12 @@ require_relative '../../bce_base_client'
 module Baidubce
     module Services
 
+        MAX_PUT_OBJECT_LENGTH = 5 * 1024 * 1024 * 1024
+        MAX_APPEND_OBJECT_LENGTH = 5 * 1024 * 1024 * 1024
+        MAX_USER_METADATA_SIZE = 2 * 1024
+        MIN_PART_NUMBER = 1
+        MAX_PART_NUMBER = 10000
+
         class BosClient < BceBaseClient
 
             # List buckets of user.
@@ -424,8 +430,8 @@ module Baidubce
                 raise BceClientException.new("user_metadata should be of type hash.") unless user_metadata.is_a? Hash
 
                 user_metadata.each do |k, v|
-                    k = k.encode("UTF-8")
-                    v = v.encode("UTF-8")
+                    k = k.encode(DEFAULT_ENCODING)
+                    v = v.encode(DEFAULT_ENCODING)
                     normalized_key = BCE_USER_METADATA_PREFIX + k
                     headers[normalized_key] = v
                     meta_size += normalized_key.length
