@@ -15,15 +15,10 @@
 require 'mimemagic'
 
 require_relative '../../bce_base_client'
+require_relative 'bos_constants'
 
 module Baidubce
     module Services
-
-        MAX_PUT_OBJECT_LENGTH = 5 * 1024 * 1024 * 1024
-        MAX_APPEND_OBJECT_LENGTH = 5 * 1024 * 1024 * 1024
-        MAX_USER_METADATA_SIZE = 2 * 1024
-        MIN_PART_NUMBER = 1
-        MAX_PART_NUMBER = 10000
 
         class BosClient < BceBaseClient
 
@@ -240,8 +235,7 @@ module Baidubce
                 params = options['params'].nil? ? {} : options['params']
 
                 path = Utils.append_uri("/", bucket_name, key)
-                url, host = Utils.parse_url_host(@config)
-                headers[HOST] = host
+                url, headers[HOST] = Utils.parse_url_host(@config)
                 params[AUTHORIZATION.downcase] = @signer.sign(@config.credentials,
                                                                     GET,
                                                                     path,
@@ -250,7 +244,7 @@ module Baidubce
                                                                     options['timestamp'],
                                                                     options['expiration_in_seconds'] || 1800,
                                                                     options['headers_to_sign'])
-                url = url + Utils.url_encode_except_slash(path)
+                url += Utils.url_encode_except_slash(path)
                 query_str = Utils.get_canonical_querystring(params, false)
                 url += "?#{query_str}" unless query_str.to_s.empty?
                 url

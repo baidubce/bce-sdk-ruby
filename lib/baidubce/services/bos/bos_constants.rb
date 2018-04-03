@@ -10,11 +10,16 @@
 # either express or implied. See the License for the specific language governing permissions
 # and limitations under the License.
 
-# This module provide constants for BCE sdk.
+# This module provide constants for BOS services.
 
 module Baidubce
+    module Services
 
-    DEFAULT_SERVICE_DOMAIN = 'baidubce.com'
-    DEFAULT_ENCODING = 'UTF-8'
+        MAX_PUT_OBJECT_LENGTH = 5 * 1024 * 1024 * 1024
+        MAX_APPEND_OBJECT_LENGTH = 5 * 1024 * 1024 * 1024
+        MAX_USER_METADATA_SIZE = 2 * 1024
+        MIN_PART_NUMBER = 1
+        MAX_PART_NUMBER = 10000
 
+    end
 end
