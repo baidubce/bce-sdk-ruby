@@ -70,23 +70,23 @@ module Baidubce
                     begin
                         if save_path
                             logger.debug("Response save file path: #{save_path}")
+                            resp = nil
                             File.open(save_path, 'w') { |f|
                                 block = proc { |response|
                                     response.read_body { |chunk| f << chunk }
-                                    puts response.code.to_i
+                                    resp = response
                                     raise BceHttpException.new(response.code.to_i,
                                         "get_object_to_file", "Net::HTTPExceptions") if response.code.to_i > 300
                                 }
                                 block_arg = { block_response: block }
                                 args.merge! block_arg
                                 RestClient::Request.new(args).execute
-                                return nil, nil
+                                return nil, resp.to_hash
                             }
                         else
                             resp = RestClient::Request.new(args).execute
                             logger.debug("Response code: #{resp.code}")
                             logger.debug("Response headers: #{resp.headers.to_s}")
-                            # logger.debug("Response body: #{resp.body}")
                             return resp.body, resp.headers
                         end
                     rescue BceHttpException, RestClient::ExceptionWithResponse => err

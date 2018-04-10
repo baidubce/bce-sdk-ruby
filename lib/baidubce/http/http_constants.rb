@@ -67,6 +67,8 @@ module Baidubce
 
         BCE_CONTENT_SHA256 = "x-bce-content-sha256"
 
+        BCE_CONTENT_CRC32 = "x-bce-content-crc32"
+
         BCE_COPY_METADATA_DIRECTIVE = "x-bce-metadata-directive"
 
         BCE_COPY_SOURCE = "x-bce-copy-source"

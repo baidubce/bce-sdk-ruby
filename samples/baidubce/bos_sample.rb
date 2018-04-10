@@ -76,8 +76,6 @@ end
 
 demo "put/get bucket lifecycle" do
     puts "before put bucket lifecycle"
-    # TODO 404
-    # puts client.get_bucket_lifecycle(bucket_name)
     lifecycle = [
         {
             id: "rule-id",
@@ -106,8 +104,6 @@ end
 
 demo "put/get bucket cors" do
     puts "before put bucket cors"
-    # TODO 404
-    # puts client.get_bucket_cors(bucket_name)
     cors = [
         {
             allowedOrigins: [
@@ -155,10 +151,11 @@ demo "put/get bucket storage_class" do
     puts "before put bucket storage_class"
     puts client.get_bucket_storageclass(bucket_name)
 
-    client.put_bucket_storageclass(bucket_name, "STANDARD")
+    client.put_bucket_storageclass(bucket_name, "COLD")
     puts "after put bucket storage_class"
     puts client.get_bucket_storageclass(bucket_name)
 
+    client.put_bucket_storageclass(bucket_name, "STANDRAD")
 end
 
 demo "put object" do

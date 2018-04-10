@@ -109,7 +109,8 @@ module Baidubce
             # Get Bucket Storageclass.
             def get_bucket_storageclass(bucket_name)
                 params = { storageClass: "" }
-                send_request(GET, bucket_name, params)
+                resp = send_request(GET, bucket_name, params)
+                resp['storageClass']
             end
 
             # Put Bucket Cors.
