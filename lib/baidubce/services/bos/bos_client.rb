@@ -188,7 +188,7 @@ module Baidubce
                     CONTENT_LENGTH => content_length,
                 }
                 headers.merge! options
-                populate_headers_with_user_metadata(headers) unless headers['user_metadata'].nil?
+                populate_headers_with_user_metadata(headers) unless headers['user-metadata'].nil?
                 send_request(POST, bucket_name, params, key, headers, data)
             end
 
@@ -211,7 +211,7 @@ module Baidubce
                     CONTENT_LENGTH => content_length,
                 }
                 headers.merge! options
-                populate_headers_with_user_metadata(headers) unless headers['user_metadata'].nil?
+                populate_headers_with_user_metadata(headers) unless headers['user-metadata'].nil?
                 send_request(PUT, bucket_name, {}, key, headers, data)
             end
 
@@ -260,7 +260,7 @@ module Baidubce
             def copy_object(source_bucket_name, source_key, target_bucket_name, target_key, options={})
                 headers = options
                 headers[BCE_COPY_SOURCE_IF_MATCH] = headers['etag'] unless headers['etag'].nil?
-                if headers['user_metadata'].nil?
+                if headers['user-metadata'].nil?
                     headers[BCE_COPY_METADATA_DIRECTIVE] = 'copy'
                 else
                     headers[BCE_COPY_METADATA_DIRECTIVE] = 'replace'
@@ -338,7 +338,7 @@ module Baidubce
                 headers = options
                 params={ partNumber: part_number, uploadId: upload_id }
 
-                populate_headers_with_user_metadata(headers) unless headers['user_metadata'].nil?
+                populate_headers_with_user_metadata(headers) unless headers['user-metadata'].nil?
                 headers[BCE_COPY_SOURCE_IF_MATCH] = headers['etag'] unless headers['etag'].nil?
                 headers[BCE_COPY_SOURCE_RANGE] = sprintf("bytes=%d-%d", offset, offset + part_size - 1)
                 headers[BCE_COPY_SOURCE] =
@@ -352,7 +352,7 @@ module Baidubce
                 headers = options
                 params = { uploadId: upload_id }
 
-                populate_headers_with_user_metadata(headers) unless headers['user_metadata'].nil?
+                populate_headers_with_user_metadata(headers) unless headers['user-metadata'].nil?
                 part_list.each { |part| part['eTag'].gsub!("\"", "") }
                 body = { parts: part_list }.to_json
                 send_request(POST, bucket_name, params, key, headers, body)
@@ -421,7 +421,7 @@ module Baidubce
 
             def populate_headers_with_user_metadata(headers)
                 meta_size = 0
-                user_metadata = headers['user_metadata']
+                user_metadata = headers['user-metadata']
                 raise BceClientException.new("user_metadata should be of type hash.") unless user_metadata.is_a? Hash
 
                 user_metadata.each do |k, v|
@@ -436,7 +436,7 @@ module Baidubce
                 if meta_size > MAX_USER_METADATA_SIZE
                     raise BceClientException.new("Metadata size should not be greater than #{MAX_USER_METADATA_SIZE}")
                 end
-                headers.delete('user_metadata')
+                headers.delete('user-metadata')
             end
 
         end

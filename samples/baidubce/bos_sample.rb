@@ -136,10 +136,8 @@ demo "put/get bucket cors" do
 end
 
 demo "put/get bucket logging" do
-    puts "before put bucket logging"
-    # puts client.get_bucket_logging(bucket_name)
 
-    client.put_bucket_logging(bucket_name, bucket_name)
+    client.put_bucket_logging(bucket_name, bucket_name, "prefix")
     puts "after put bucket logging"
     puts client.get_bucket_logging(bucket_name)
 
@@ -151,11 +149,11 @@ demo "put/get bucket storage_class" do
     puts "before put bucket storage_class"
     puts client.get_bucket_storageclass(bucket_name)
 
-    client.put_bucket_storageclass(bucket_name, "COLD")
+    client.put_bucket_storageclass(bucket_name, "STANDARD_IA")
     puts "after put bucket storage_class"
     puts client.get_bucket_storageclass(bucket_name)
 
-    client.put_bucket_storageclass(bucket_name, "STANDRAD")
+    client.put_bucket_storageclass(bucket_name, "STANDARD")
 end
 
 demo "put object" do
@@ -164,15 +162,16 @@ demo "put object" do
     options = { Http::CONTENT_TYPE => 'string',
                 "key1" => "value1",
                 'Content-Disposition' => 'inline',
-                'user_metadata' => user_metadata
+                'user-metadata' => user_metadata
     }
 
     client.put_object_from_string(bucket_name, "obj.txt", "obj", options)
     puts client.get_object_as_string(bucket_name, "obj.txt")
-    client.get_object_to_file(bucket_name, "obj.txt", "obj_file.txt")
+    puts client.get_object_to_file(bucket_name, "obj.txt", "obj_file.txt")
 
     # put cold storage class object
-    client.put_object_from_file(bucket_name, "obj_cold.txt", "obj.txt", 'x-bce-storage-class' => 'COLD')
+    file_path = "obj.txt"
+    client.put_object_from_file(bucket_name, "obj_cold.txt", file_path, 'x-bce-storage-class' => 'COLD')
     puts client.get_object_as_string(bucket_name, "obj_cold.txt")
 end
 
@@ -228,7 +227,7 @@ demo "copy object" do
 
     options = { Http::CONTENT_TYPE => 'string',
                 Http::CONTENT_MD5 => 'kkkkkkkk',
-                'user_metadata' => user_metadata
+                'user-metadata' => user_metadata
     }
     client.copy_object(bucket_name, "obj.txt", bucket_name, 'obj2.txt', options)
     puts client.get_object_meta_data(bucket_name, "obj2.txt")
@@ -258,7 +257,7 @@ demo "set/get/delete object acl" do
 end
 
 # create a 18MB file for multi upload
-multi_file = "/Users/xiaoyong/Desktop/bos/baidu/bce-sdk/ruby/baidubce-sdk/multi_upload.txt"
+multi_file = "multi_upload.txt"
 
 demo "multi-upload" do
     # step 1: init multi-upload
@@ -284,7 +283,7 @@ demo "multi-upload" do
         # your should store every part number and etag to invoke complete multi-upload
         part_list << {
             "partNumber" => part_number,
-            "eTag" => response[:etag]
+            "eTag" => response['etag']
         }
         part_number += 1
     end
@@ -296,7 +295,7 @@ demo "multi-upload" do
     # SuperFile step 3: complete multi-upload
     user_metadata = { "key1" => "value1" }
     options = {
-        'user_metadata' => user_metadata
+        'user-metadata' => user_metadata
     }
 
     client.complete_multipart_upload(bucket_name, key, upload_id, part_list, options)
@@ -308,7 +307,7 @@ demo "multi-copy" do
     key = "multi_file"
     upload_id = client.initiate_multipart_upload(bucket_name, key+"_copy")["uploadId"]
     # step 2: copy a object part by part
-    left_size = client.get_object_meta_data(bucket_name, key)[:content_length].to_i
+    left_size = client.get_object_meta_data(bucket_name, key)['content-length']
     offset = 0
     part_number = 1
     part_list = []
@@ -341,7 +340,7 @@ demo "multi-copy" do
 
     user_metadata = { "key1" => "value1" }
     options = {
-        'user_metadata' => user_metadata
+        'user-metadata' => user_metadata
     }
     client.complete_multipart_upload(bucket_name, key+"_copy", upload_id, part_list, options)
 end

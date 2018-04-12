@@ -81,7 +81,9 @@ module Baidubce
                                 block_arg = { block_response: block }
                                 args.merge! block_arg
                                 RestClient::Request.new(args).execute
-                                return nil, resp.to_hash
+                                resp_headers = resp.to_hash
+                                resp_headers.each { |k, v| resp_headers[k]=v[0] }
+                                return nil, resp_headers
                             }
                         else
                             resp = RestClient::Request.new(args).execute
@@ -110,7 +112,7 @@ module Baidubce
                         headers[CONTENT_LENGTH] = 0
                     elsif body.instance_of?(String)
                         body = body.encode('UTF-8') if body.encoding.name != 'UTF-8'
-                        headers[CONTENT_LENGTH] = body.length
+                        headers[CONTENT_LENGTH] = body.bytesize
                     elsif body.instance_of?(File)
                         headers[CONTENT_LENGTH] = body.size()
                     else
@@ -186,7 +188,7 @@ module RestClient
   module Payload
     class Base
       def headers
-        ({'content-length' => size.to_s} if size) || {}
+          ({'content-length' => size.to_s} if size) || {}
       end
     end
   end

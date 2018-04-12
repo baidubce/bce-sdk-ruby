@@ -37,7 +37,7 @@ module Baidubce
                 user_metadata = { "key1" => "value1" }
                 headers ={
                     'Content-Disposition' => 'inline',
-                    'user_metadata' => user_metadata
+                    'user-metadata' => user_metadata
                 }
 
                 @client.populate_headers_with_user_metadata(headers)

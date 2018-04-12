@@ -63,7 +63,8 @@ module Baidubce
         it "generate response from headers and body" do
 
             headers = { :date=>"Mon, 19 Mar 2018 08:40:34 GMT",
-                        :content_type=>"application/json;" }
+                        :content_type=>"application/json;",
+                        :x_bce_meta_key1=>"value1" }
 
             body = '{"bucket":"ruby-test-bucket","key":"multi_file_abort",
                          "uploadId":"ed26564508494f40113dc2ddea3bb973"}'
@@ -74,6 +75,10 @@ module Baidubce
             expect(resp).to eq(expected_body)
 
             body = ''
+            headers = { "date"=>"Mon, 19 Mar 2018 08:40:34 GMT",
+                        "content-type"=>"application/json;",
+                        "user-metadata" => { "key1" => "value1" } }
+
             resp = Utils.generate_response(headers, body)
             expect(resp).to eq(headers)
 

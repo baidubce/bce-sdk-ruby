@@ -86,11 +86,32 @@ module Baidubce
         end
 
         def self.generate_response(headers, body)
-            return headers if body.to_s.empty?
+            return generate_headers(headers) if body.to_s.empty?
             ret = JSON.parse(body)
             return ret
             rescue JSON::ParserError
             return body
+        end
+
+        def self.generate_headers(headers)
+            user_metadata = {}
+
+            resp_headers = headers.inject({}) do |ret, (k, v)|
+                key = k.to_s.tr('_', '-')
+                if key.start_with?(Http::BCE_USER_METADATA_PREFIX)
+                    key.slice!(Http::BCE_USER_METADATA_PREFIX)
+                    user_metadata[key] = v
+                elsif key.downcase == 'etag'
+                    ret[key] = v.delete('\"')
+                elsif key.downcase == 'content-length'
+                    ret[key] = v.to_i
+                else
+                    ret[key] = v
+                end
+                ret
+            end
+            resp_headers['user-metadata'] = user_metadata unless user_metadata.empty?
+            resp_headers
         end
 
     end
