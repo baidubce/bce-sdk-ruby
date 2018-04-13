@@ -214,7 +214,7 @@ end
 
 demo "generate pre signed url" do
 
-    options = { 'expiration_in_seconds' => 60,
+    options = { 'expiration_in_seconds' => 360,
                 'timestamp' => Time.now.to_i,
                 'headers_to_sign' => ["host", "content-md5", "content-length"]
     }

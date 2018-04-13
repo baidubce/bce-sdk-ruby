@@ -235,8 +235,10 @@ module Baidubce
                 headers = options['headers'].nil? ? {} : options['headers']
                 params = options['params'].nil? ? {} : options['params']
 
-                path = Utils.append_uri("/", bucket_name, key)
+                path = Utils.append_uri("/", key)
                 url, headers[HOST] = Utils.parse_url_host(@config)
+                url.insert(url.index('/') + 2, bucket_name + '.')
+                headers[HOST] = bucket_name + '.' + headers[HOST]
                 params[AUTHORIZATION.downcase] = @signer.sign(@config.credentials,
                                                                     GET,
                                                                     path,
@@ -290,13 +292,11 @@ module Baidubce
             # Initialize multi_upload_file.
             def initiate_multipart_upload(bucket_name, key, options={})
                 params = { uploads: "" }
-                headers = { BOS_STORAGE_CLASS => "STANDARD" }
-                headers.merge! options
-                send_request(POST, bucket_name, params, key, headers)
+                send_request(POST, bucket_name, params, key, options)
             end
 
             # Upload a part.
-            def upload_part(bucket_name, key, upload_id, part_number, part_size, part_fp=nil, part_md5=nil, &block)
+            def upload_part(bucket_name, key, upload_id, part_number, part_size, part_md5=nil, &block)
                 params={ partNumber: part_number, uploadId: upload_id }
                 if part_number < MIN_PART_NUMBER || part_number > MAX_PART_NUMBER
                         raise BceClientException.new(sprintf("Invalid part_number %d. The valid range is from %d to %d.",
@@ -311,7 +311,7 @@ module Baidubce
                             CONTENT_TYPE => OCTET_STREAM_TYPE
                 }
                 headers[CONTENT_MD5] = part_md5 unless part_md5.nil?
-                send_request(POST, bucket_name, params, key, headers, part_fp, &block)
+                send_request(POST, bucket_name, params, key, headers, &block)
             end
 
             # Upload a part from file.
@@ -320,7 +320,7 @@ module Baidubce
 
                 left_size = part_size
                 buf_size = @config.send_buf_size
-                upload_part(bucket_name, key, upload_id, part_number, part_size) do |buf_writer|
+                upload_part(bucket_name, key, upload_id, part_number, part_size, part_md5) do |buf_writer|
                     File.open(file_name, "r") do |part_fp|
                         part_fp.seek(offset)
                         bytes_to_read = left_size > buf_size ? buf_size : left_size

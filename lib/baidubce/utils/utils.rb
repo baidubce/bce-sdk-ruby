@@ -44,7 +44,7 @@ module Baidubce
         def self.append_uri(base_uri, *path_components)
             uri = [base_uri]
             path_components.reject(&:empty?)
-            path_components.each { |path| uri << ERB::Util.url_encode(path) }
+            path_components.each { |path| uri << path }
 
             unless uri.empty?
                 uri[0].gsub!(/([\/]*$)/, '')
