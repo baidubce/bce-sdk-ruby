@@ -85,8 +85,9 @@ module Baidubce
             md5.base64digest
         end
 
-        def self.generate_response(headers, body)
-            return generate_headers(headers) if body.to_s.empty?
+        def self.generate_response(headers, body, return_body)
+            return body if return_body
+            return generate_headers(headers) if body.empty?
             ret = JSON.parse(body)
             return ret
             rescue JSON::ParserError
@@ -101,9 +102,9 @@ module Baidubce
                 if key.start_with?(Http::BCE_USER_METADATA_PREFIX)
                     key.slice!(Http::BCE_USER_METADATA_PREFIX)
                     user_metadata[key] = v
-                elsif key.downcase == 'etag'
+                elsif key.downcase == Http::ETAG.downcase
                     ret[key] = v.delete('\"')
-                elsif key.downcase == 'content-length'
+                elsif key.downcase == Http::CONTENT_LENGTH.downcase
                     ret[key] = v.to_i
                 else
                     ret[key] = v

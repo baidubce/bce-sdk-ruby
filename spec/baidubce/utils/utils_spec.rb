@@ -31,7 +31,7 @@ module Baidubce
 
         it "append uri" do
             path = Utils.append_uri("/", "中文bucket//", "object")
-            expect(path).to eq("/%E4%B8%AD%E6%96%87bucket%2F%2F/object")
+            expect(path).to eq("/中文bucket/object")
         end
 
         it "encode url except slash" do
@@ -69,7 +69,7 @@ module Baidubce
             body = '{"bucket":"ruby-test-bucket","key":"multi_file_abort",
                          "uploadId":"ed26564508494f40113dc2ddea3bb973"}'
 
-            resp = Utils.generate_response(headers, body)
+            resp = Utils.generate_response(headers, body, false)
             expected_body = { "bucket"=>"ruby-test-bucket", "key"=>"multi_file_abort",
                               "uploadId"=>"ed26564508494f40113dc2ddea3bb973" }
             expect(resp).to eq(expected_body)
@@ -79,12 +79,12 @@ module Baidubce
                         "content-type"=>"application/json;",
                         "user-metadata" => { "key1" => "value1" } }
 
-            resp = Utils.generate_response(headers, body)
+            resp = Utils.generate_response(headers, body, false)
             expect(resp).to eq(headers)
 
-            body = nil
-            resp = Utils.generate_response(headers, body)
-            expect(resp).to eq(headers)
+            body = '{\"hello\":\"goodbye\"}'
+            resp = Utils.generate_response(headers, body, true)
+            expect(resp).to eq(body)
 
         end
 

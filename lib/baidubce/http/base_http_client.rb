@@ -70,20 +70,19 @@ module Baidubce
                     begin
                         if save_path
                             logger.debug("Response save file path: #{save_path}")
-                            resp = nil
-                            File.open(save_path, 'w') { |f|
+                            resp_headers = {}
+                            File.open(save_path, 'w+') { |f|
                                 block = proc { |response|
                                     response.read_body { |chunk| f << chunk }
-                                    resp = response
+                                    resp_headers = response.to_hash
+                                    resp_headers.each { |k, v| resp_headers[k]=v[0] }
                                     raise BceHttpException.new(response.code.to_i,
-                                        "get_object_to_file", "Net::HTTPExceptions") if response.code.to_i > 300
+                                        resp_headers, '', 'get_object_to_file exception') if response.code.to_i > 300
                                 }
                                 block_arg = { block_response: block }
                                 args.merge! block_arg
                                 RestClient::Request.new(args).execute
-                                resp_headers = resp.to_hash
-                                resp_headers.each { |k, v| resp_headers[k]=v[0] }
-                                return nil, resp_headers
+                                return '', resp_headers
                             }
                         else
                             resp = RestClient::Request.new(args).execute
@@ -92,12 +91,21 @@ module Baidubce
                             return resp.body, resp.headers
                         end
                     rescue BceHttpException, RestClient::ExceptionWithResponse => err
-                        logger.debug("ExceptionWithResponse: #{err.http_code}, #{err.http_body}, #{err.message}")
+                        logger.debug("ExceptionWithResponse: #{err.http_code}, #{err.http_body}, #{err.http_headers}, #{err.message}")
                         if config.retry_policy.should_retry(err.http_code, retries_attempted)
                             delay_in_millis = config.retry_policy.get_delay_before_next_retry_in_millis(retries_attempted)
                             sleep(delay_in_millis / 1000.0)
                         else
-                            raise BceServerException.new(err.http_code, err.message + ", " + err.http_body)
+                            request_id = err.http_headers[:x_bce_request_id]
+                            if err.is_a?(BceHttpException)
+                                err.http_body = File.read(save_path)
+                                request_id = err.http_headers['x-bce-request-id']
+                            end
+                            msg = err.http_body
+                            if err.http_body.empty?
+                                msg = "{\"code\":\"#{err.http_code}\",\"message\":\"#{err.message}\",\"requestId\":\"#{request_id}\"}"
+                            end
+                            raise BceServerException.new(err.http_code, msg)
                         end
                     end
 

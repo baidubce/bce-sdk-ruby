@@ -21,6 +21,8 @@ include Baidubce
 credentials = Auth::BceCredentials.new(
     # "your ak",
     # "your sk"
+    "415ce912032743dfb560f7b8534351a8",
+    "a546890875c2468bb59dcb7669dc9b7f"
 )
 
 conf = BceClientConfiguration.new(
@@ -194,7 +196,7 @@ end
 demo "append object" do
     puts client.append_object_from_string(bucket_name, "append.txt", "append")
     puts client.get_object_as_string(bucket_name, "append.txt")
-    puts client.append_object_from_string(bucket_name, "append.txt", "append", offset: 6)
+    puts client.append_object_from_string(bucket_name, "append.txt", "append", 'offset' => 6)
     puts client.get_object_as_string(bucket_name, "append.txt")
 end
 
@@ -208,7 +210,7 @@ end
 demo "delete multiple objects" do
     object_list = ["multi_obj0.txt", "multi_obj1.txt","multi_obj2.txt"]
     object_list.each { |key| client.put_object_from_string(bucket_name, key, "content") }
-    # object_list << "other.txt"
+    object_list << "other.txt"
     puts client.delete_multiple_objects(bucket_name, object_list)
 end
 

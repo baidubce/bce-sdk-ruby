@@ -160,9 +160,9 @@ module Baidubce
                 send_request(GET, bucket_name, params)
             end
 
-            def get_object(bucket_name, key, range, save_path=nil)
+            def get_object(bucket_name, key, range, save_path=nil, return_body=true)
                 headers = range.nil? ? {} : get_range_header_dict(range)
-                send_request(GET, bucket_name, {}, key, headers, "", save_path)
+                send_request(GET, bucket_name, {}, key, headers, "", save_path, return_body)
             end
 
             # Get Content of Object and Put Content to String.
@@ -172,7 +172,7 @@ module Baidubce
 
             # Get Content of Object and Put Content to File.
             def get_object_to_file(bucket_name, key, save_path, range=nil)
-                get_object(bucket_name, key, range, save_path)
+                get_object(bucket_name, key, range, save_path, false)
             end
 
             # Put an appendable object to BOS or add content to an appendable object.
@@ -196,7 +196,7 @@ module Baidubce
             # or add content of string to an appendable object.
             def append_object_from_string(bucket_name, key, data, options={})
                 data_md5 = Digest::MD5.base64digest(data)
-                append_object(bucket_name, key, data, options['offset'], data_md5, data.length, options)
+                append_object(bucket_name, key, data, options['offset'], data_md5, data.bytesize, options)
             end
 
             # Put object to BOS.
@@ -223,8 +223,7 @@ module Baidubce
 
             # Put object and put content of file to the object.
             def put_object_from_file(bucket_name, key, file_name, options={})
-                content_type = MimeMagic.by_path(file_name).type
-                { CONTENT_TYPE => content_type }.merge! options
+                options[CONTENT_TYPE] = MimeMagic.by_path(file_name).type if options[CONTENT_TYPE].nil?
                 data_md5 = Utils.get_md5_from_file(file_name, @config.recv_buf_size)
                 data = File.open(file_name)
                 put_object(bucket_name, key, data, data_md5, data.size, options)
@@ -286,7 +285,8 @@ module Baidubce
                 key_arr = []
                 key_list.each { |item| key_arr << { key: item } }
                 body = { objects: key_arr }.to_json
-                send_request(POST, bucket_name, params, "", {}, body)
+                ret = send_request(POST, bucket_name, params, "", {}, body, nil, true)
+                return ret.empty? ? {} : JSON.parse(ret)
             end
 
             # Initialize multi_upload_file.
@@ -296,7 +296,8 @@ module Baidubce
             end
 
             # Upload a part.
-            def upload_part(bucket_name, key, upload_id, part_number, part_size, part_md5=nil, &block)
+            def upload_part(bucket_name, key, upload_id, part_number, part_size, options={}, &block)
+                headers = options
                 params={ partNumber: part_number, uploadId: upload_id }
                 if part_number < MIN_PART_NUMBER || part_number > MAX_PART_NUMBER
                         raise BceClientException.new(sprintf("Invalid part_number %d. The valid range is from %d to %d.",
@@ -307,20 +308,19 @@ module Baidubce
                                                              MAX_PUT_OBJECT_LENGTH))
                 end
 
-                headers = { CONTENT_LENGTH => part_size,
-                            CONTENT_TYPE => OCTET_STREAM_TYPE
-                }
-                headers[CONTENT_MD5] = part_md5 unless part_md5.nil?
+                headers[CONTENT_LENGTH] = part_size
+                headers[CONTENT_TYPE] = OCTET_STREAM_TYPE
+
                 send_request(POST, bucket_name, params, key, headers, &block)
             end
 
             # Upload a part from file.
             def upload_part_from_file(bucket_name, key, upload_id, part_number,
-                                      part_size, file_name, offset=0, part_md5=nil)
+                                      part_size, file_name, offset=0, options={})
 
                 left_size = part_size
                 buf_size = @config.send_buf_size
-                upload_part(bucket_name, key, upload_id, part_number, part_size, part_md5) do |buf_writer|
+                upload_part(bucket_name, key, upload_id, part_number, part_size, options) do |buf_writer|
                     File.open(file_name, "r") do |part_fp|
                         part_fp.seek(offset)
                         bytes_to_read = left_size > buf_size ? buf_size : left_size
@@ -405,11 +405,11 @@ module Baidubce
                 send_request(DELETE, bucket_name, params, key)
             end
 
-            def send_request(http_method, bucket_name="", params={}, key="", headers={}, body="", save_path=nil, &block)
+            def send_request(http_method, bucket_name="", params={}, key="", headers={}, body="", save_path=nil, return_body=false, &block)
                 path = Utils.append_uri("/", bucket_name, key)
                 body, headers = @http_client.send_request(@config, @signer, http_method, path, params, headers, body, save_path, &block)
                 # Generate result from headers and body
-                Utils.generate_response(headers, body)
+                Utils.generate_response(headers, body, return_body)
             end
 
             def get_range_header_dict(range)

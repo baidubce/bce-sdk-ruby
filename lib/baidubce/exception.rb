@@ -20,11 +20,13 @@ end
 
 class BceHttpException < RuntimeError
     attr_accessor :http_code
+    attr_accessor :http_headers
     attr_accessor :http_body
     attr_accessor :message
 
-    def initialize(http_code, http_body, message)
+    def initialize(http_code, http_headers, http_body, message)
         @http_code = http_code
+        @http_headers = http_headers
         @http_body = http_body
         @message = message
     end
