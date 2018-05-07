@@ -19,9 +19,9 @@ module Baidubce
 
         class StsClient < BceBaseClient
 
-            STS_URL_PREFIX = "/";
-            GET_SESSION_TOKEN_VERSION = "v1";
-            GET_SESSION_TOKEN_PATH = "sessionToken";
+            STS_URL_PREFIX = "/"
+            GET_SESSION_TOKEN_VERSION = "v1"
+            GET_SESSION_TOKEN_PATH = "sessionToken"
 
             def get_session_token(acl, duration_seconds=nil)
                 params = duration_seconds.nil? ? {} : { durationSeconds: duration_seconds }
@@ -29,7 +29,7 @@ module Baidubce
                 body = acl.to_json
                 path = Utils.append_uri(STS_URL_PREFIX, GET_SESSION_TOKEN_VERSION, GET_SESSION_TOKEN_PATH)
                 body, headers = @http_client.send_request(@config, @signer, POST, path, params, headers, body)
-                Utils.generate_response(headers, body)
+                Utils.generate_response(headers, body, false)
             end
 
         end

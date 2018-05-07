@@ -175,6 +175,12 @@ demo "put object" do
     file_path = "obj.txt"
     client.put_object_from_file(bucket_name, "obj_cold.txt", file_path, 'x-bce-storage-class' => 'COLD')
     puts client.get_object_as_string(bucket_name, "obj_cold.txt")
+    
+    # put object with content_length
+    file_path = "obj.txt"
+    client.put_object_from_file(bucket_name, "obj_with_content_length.txt", file_path, 'Content-Length' => 2)
+    puts client.get_object_as_string(bucket_name, "obj_with_content_length.txt")
+
 end
 
 demo "list objects" do

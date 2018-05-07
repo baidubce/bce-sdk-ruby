@@ -61,17 +61,17 @@ module Baidubce
 
             # stop retrying when the maximum number of retries is reached
             return false if retries_attempted >= @max_error_retry
+            return true if http_code.nil?
 
             # Only retry on a subset of service exceptions
-            if http_code >= 500 && http_code != 501
-                logger.debug('Retry for server error.')
-                return true
-            end
             if http_code == 408
                 logger.debug('Retry for request timeout.')
                 return true
             end
-
+            if http_code >= 500 && http_code != 501
+                logger.debug('Retry for server error.')
+                return true
+            end
             return false
         end
 

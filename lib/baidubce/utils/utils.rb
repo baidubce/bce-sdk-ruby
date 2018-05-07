@@ -12,7 +12,7 @@
 
 # This module provide some utils for bce client.
 
-require "ERB"
+require "erb"
 require "uri"
 require 'json'
 require 'digest/md5'
@@ -75,12 +75,16 @@ module Baidubce
             arr.join("&")
         end
 
-        def self.get_md5_from_file(file_name, buf_size=8192)
+        def self.get_md5_from_file(file_name, content_length, buf_size=8192)
 
             md5 = Digest::MD5.new
-            buf = ""
+            left_size = content_length
             File.open(file_name, 'rb') do |io|
-                md5.update(buf) while io.read(buf_size, buf)
+                bytes_to_read = left_size > buf_size ? buf_size : left_size
+                until left_size <= 0
+                    md5.update(io.read(bytes_to_read))
+                    left_size -= bytes_to_read
+                end
             end
             md5.base64digest
         end

@@ -178,8 +178,7 @@ module Baidubce
             # Put an appendable object to BOS or add content to an appendable object.
             def append_object(bucket_name, key, data, offset, content_md5, content_length, options={})
                 if content_length > MAX_APPEND_OBJECT_LENGTH
-                    raise BceClientException.new("Object length should be less than
-                        #{MAX_APPEND_OBJECT_LENGTH}. Use multi-part upload instead.")
+                    raise BceClientException.new("Object length should be less than #{MAX_APPEND_OBJECT_LENGTH}. Use multi-part upload instead.")
                 end
                 params = { append: "" }
                 params[:offset] = offset unless offset.nil?
@@ -200,10 +199,9 @@ module Baidubce
             end
 
             # Put object to BOS.
-            def put_object(bucket_name, key, data, content_md5, content_length, options)
+            def put_object(bucket_name, key, data, content_md5, content_length, options, &block)
                 if content_length > MAX_PUT_OBJECT_LENGTH
-                    raise BceClientException.new("Object length should be less than
-                        #{MAX_PUT_OBJECT_LENGTH}. Use multi-part upload instead.")
+                    raise BceClientException.new("Object length should be less than #{MAX_PUT_OBJECT_LENGTH}. Use multi-part upload instead.")
                 end
 
                 headers = {
@@ -211,8 +209,9 @@ module Baidubce
                     CONTENT_LENGTH => content_length,
                 }
                 headers.merge! options
+                headers[CONTENT_TYPE] = OCTET_STREAM_TYPE if headers[CONTENT_TYPE].nil?
                 populate_headers_with_user_metadata(headers) unless headers['user-metadata'].nil?
-                send_request(PUT, bucket_name, {}, key, headers, data)
+                send_request(PUT, bucket_name, {}, key, headers, data, &block)
             end
 
             # Create object and put content of string to the object.
@@ -223,10 +222,26 @@ module Baidubce
 
             # Put object and put content of file to the object.
             def put_object_from_file(bucket_name, key, file_name, options={})
-                options[CONTENT_TYPE] = MimeMagic.by_path(file_name).type if options[CONTENT_TYPE].nil?
-                data_md5 = Utils.get_md5_from_file(file_name, @config.recv_buf_size)
-                data = File.open(file_name)
-                put_object(bucket_name, key, data, data_md5, data.size, options)
+                mime = MimeMagic.by_path(file_name)
+                options[CONTENT_TYPE] = mime.type if options[CONTENT_TYPE].nil? && !mime.nil?
+                buf_size = @config.recv_buf_size
+                if options[CONTENT_LENGTH].nil?
+                    data = File.open(file_name, "rb")
+                    data_md5 = Utils.get_md5_from_file(file_name, data.size, buf_size)
+                    put_object(bucket_name, key, data, data_md5, data.size, options)
+                else
+                    left_size = options[CONTENT_LENGTH]
+                    data_md5 = Utils.get_md5_from_file(file_name, left_size, buf_size)
+                    put_object(bucket_name, key, "", data_md5, left_size, options) do |buf_writer|
+                        File.open(file_name, "rb") do |part_fp|
+                            bytes_to_read = left_size > buf_size ? buf_size : left_size
+                            until left_size <= 0
+                                buf_writer << part_fp.read(bytes_to_read)
+                                left_size -= bytes_to_read
+                            end
+                        end
+                    end
+                end
             end
 
             # Get an authorization url with expire time.
@@ -304,7 +319,7 @@ module Baidubce
                                                              part_number, MIN_PART_NUMBER, MAX_PART_NUMBER))
                 end
                 if part_size > MAX_PUT_OBJECT_LENGTH
-                        raise BceClientException.new(sprintf("Single part length should be less than %d. ",
+                        raise BceClientException.new(sprintf("Single part length should be less than %d.",
                                                              MAX_PUT_OBJECT_LENGTH))
                 end
 
@@ -321,7 +336,7 @@ module Baidubce
                 left_size = part_size
                 buf_size = @config.send_buf_size
                 upload_part(bucket_name, key, upload_id, part_number, part_size, options) do |buf_writer|
-                    File.open(file_name, "r") do |part_fp|
+                    File.open(file_name, "rb") do |part_fp|
                         part_fp.seek(offset)
                         bytes_to_read = left_size > buf_size ? buf_size : left_size
                         until left_size <= 0
