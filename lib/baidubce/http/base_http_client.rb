@@ -201,3 +201,59 @@ module RestClient
     end
   end
 end
+
+module Net
+    class HTTP
+        def transport_request(req)
+            count = 0
+            begin
+                begin_transport req
+                res = catch(:response) {
+                    req.exec @socket, @curr_http_version, edit_path(req.path)
+                    begin
+                        res = HTTPResponse.read_new(@socket)
+                        res.decode_content = req.decode_content
+                    end while res.kind_of?(HTTPContinue)
+
+                    res.uri = req.uri
+
+                    res
+                }
+                res.reading_body(@socket, req.response_body_permitted?) {
+                    yield res if block_given?
+                }
+            rescue Net::OpenTimeout
+                raise
+            rescue Net::ReadTimeout, IOError, EOFError,
+                Errno::ECONNRESET, Errno::ECONNABORTED, Errno::EPIPE,
+                # avoid a dependency on OpenSSL
+                defined?(OpenSSL::SSL) ? OpenSSL::SSL::SSLError : IOError,
+                Timeout::Error => exception
+                if count == 0 && IDEMPOTENT_METHODS_.include?(req.method)
+                    count += 1
+                    @socket.close if @socket and not @socket.closed?
+                    D "Conn close because of error #{exception}, and retry"
+                    if req.body_stream
+                        if req.body_stream.respond_to?(:rewind)
+                            req.body_stream.rewind
+                        else
+                            raise
+                        end
+                    end
+                    retry
+                end
+                D "Conn close because of error #{exception}"
+                @socket.close if @socket and not @socket.closed?
+                raise
+            end
+
+            end_transport req, res
+            res
+        rescue => exception
+            D "Conn close because of error #{exception}"
+            @socket.close if @socket and not @socket.closed?
+            raise exception
+        end
+    end
+end
+
