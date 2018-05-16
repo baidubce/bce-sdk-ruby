@@ -21,8 +21,6 @@ include Baidubce
 credentials = Auth::BceCredentials.new(
     # "your ak",
     # "your sk"
-    "415ce912032743dfb560f7b8534351a8",
-    "a546890875c2468bb59dcb7669dc9b7f"
 )
 
 conf = BceClientConfiguration.new(
@@ -67,10 +65,22 @@ demo "set/get bucket acl" do
     client.set_bucket_canned_acl(bucket_name, "private")
     puts "before set bucket acl"
     puts client.get_bucket_acl(bucket_name)
-    acl = [{'grantee' => [{'id' => 'b124deeaf6f641c9ac27700b41a350a8'},
-                          {'id' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'}],
-    'permission' => ['FULL_CONTROL']}]
 
+    acl = [{'grantee' => [{'id' => 'b124deeaf6f641c9ac27700b41a350a8'},
+                      {'id' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'}],
+        'permission' => ['FULL_CONTROL'],
+        'condition' => {
+            'referer' => {
+                'stringLike' => ['http://www.abc.com/*'],
+                'stringEquals' => ['http://www.abc.com']
+             },
+            "ipAddress" => [
+                  '192.168.0.0/16',
+                  '192.169.0.*',
+                  '192.170.0.5'
+            ]
+        }
+    }]
     client.set_bucket_acl(bucket_name, acl)
     puts "after set bucket acl"
     puts client.get_bucket_acl(bucket_name)
@@ -261,7 +271,7 @@ demo "set/get/delete object acl" do
     puts "after set object body acl"
     client.set_object_acl(bucket_name, key, acl)
     puts client.get_object_acl(bucket_name, key)
-
+    client.delete_object_acl(bucket_name, key)
 end
 
 # create a 18MB file for multi upload

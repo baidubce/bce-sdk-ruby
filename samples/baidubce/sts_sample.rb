@@ -55,10 +55,10 @@ demo 'sts client' do
             ]
     }
 
+    # durationSeconds为失效时间，如果为非int值或者不设置该参数，会使用默认的12小时作为失效时间
+    # puts sts_client.get_session_token(acl, "test")
     # puts sts_client.get_session_token(acl, 1024)
     sts_response = sts_client.get_session_token(acl)
-    # durationSeconds为非int值，会使用默认的12小时作为失效时间
-    # puts sts_client.get_session_token(acl, "test")
     
     # 使用获取到的ak, sk, token新建BosClient访问BOS
     sts_ak = sts_response["accessKeyId"]
