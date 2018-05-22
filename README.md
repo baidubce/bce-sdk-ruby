@@ -19,7 +19,7 @@ Ruby SDK包要求运行环境至少为Ruby 2.0 版本。
 ### 方式二：通过bundler安装
 
 1. 首先得确认安装了bundler，安装命令：```gem install bundler```
-2. 在你的应用程序的Gemfile中添加：```gem 'baidubce-sdk', '~> 0.1.0'```，再运行```bundle install```
+2. 在你的应用程序的Gemfile中添加：```gem 'baidubce-sdk', '~> 0.9.0'```，再运行```bundle install```
 
 > **说明：** 用户在安装好gem之后，可以输入irb进入Ruby交互式命令行，输入```require 'baidubce/services/bos/bos_client'```，如果显示"true"则SDK已经顺利安装。[github源码链接](https://github.com/baidubce/bce-sdk-ruby)
 
