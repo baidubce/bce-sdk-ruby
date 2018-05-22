@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.summary       = 'BaiduBce BOS Ruby SDK'
   spec.description   = 'The official Ruby sdk used to accessing BaiduBce Object Storage Service'
   spec.homepage      = "https://github.com/baidubce/bce-sdk-ruby"
-  spec.license       = "MIT"
+  spec.license       = "Apache-2.0"
 
   spec.files         = `git ls-files -z`.split("\x0").reject do |f|
     f.match(%r{^(test|spec|features)/})
