@@ -274,7 +274,7 @@ demo "set/get/delete object acl" do
     client.delete_object_acl(bucket_name, key)
 end
 
-# create a 18MB file for multi upload
+# create a 18MB file for multi upload.
 multi_file = "multi_upload.txt"
 
 demo "multi-upload" do
