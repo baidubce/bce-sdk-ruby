@@ -67,11 +67,11 @@ module Baidubce
                         :x_bce_meta_key1=>"value1" }
 
             body = '{"bucket":"ruby-test-bucket","key":"multi_file_abort",
-                         "uploadId":"ed26564508494f40113dc2ddea3bb973"}'
+                         "uploadId":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}'
 
             resp = Utils.generate_response(headers, body, false)
             expected_body = { "bucket"=>"ruby-test-bucket", "key"=>"multi_file_abort",
-                              "uploadId"=>"ed26564508494f40113dc2ddea3bb973" }
+                              "uploadId"=>"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" }
             expect(resp).to eq(expected_body)
 
             body = ''

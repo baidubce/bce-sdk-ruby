@@ -66,7 +66,7 @@ demo "set/get bucket acl" do
     puts "before set bucket acl"
     puts client.get_bucket_acl(bucket_name)
 
-    acl = [{'grantee' => [{'id' => 'b124deeaf6f641c9ac27700b41a350a8'},
+    acl = [{'grantee' => [{'id' => 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbb'},
                       {'id' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'}],
         'permission' => ['FULL_CONTROL'],
         'condition' => {
@@ -255,7 +255,7 @@ demo "set/get/delete object acl" do
     # puts "before set object acl"
     key = "obj.txt"
     # client.get_object_acl(bucket_name, key)
-    acl = [{'grantee' => [{'id' => 'b124deeaf6f641c9ac27700b41a350a8'},
+    acl = [{'grantee' => [{'id' => 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'},
                           {'id' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'}],
     'permission' => ['FULL_CONTROL']}]
 
@@ -264,7 +264,7 @@ demo "set/get/delete object acl" do
     puts client.get_object_acl(bucket_name, key)
 
     puts "after set object canned x-bce-grant-read"
-    id_permission = "id=\"6c47a952db4444c5a097b41be3f24c94\",id=\"8c47a952db4444c5a097b41be3f24c94\",id=\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\""
+    id_permission = "id=\"aaaaaaaaaaaaaaaaaaaaaaaaaa\",id=\"ccccccccccccccccccccccccccc\",id=\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\""
     client.set_object_canned_acl(bucket_name, key, 'x-bce-grant-read' => id_permission)
     puts client.get_object_acl(bucket_name, key)
 

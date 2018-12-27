@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
   spec.name          = "baidubce-sdk"
   spec.version       = Baidubce::VERSION
   spec.authors       = ["xiaoyong"]
-  spec.email         = ["xiaoyong@baidu.com"]
+  spec.email         = ["yxiaoak@163.com"]
 
   spec.summary       = 'BaiduBce BOS Ruby SDK'
   spec.description   = 'The official Ruby sdk used to accessing BaiduBce Object Storage Service'

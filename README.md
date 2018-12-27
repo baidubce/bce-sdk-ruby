@@ -142,7 +142,7 @@ BOS可以通过STS机制实现第三方的临时授权访问。STS（Security To
    # 新建StsClient
    sts_client = Baidubce::Services::StsClient.new(sts_conf)
    acl = {
-               id: '8c47a952db4444c5a097b41be3f24c94',
+               id: 'aaaaaaaaaaaaaaaaaaaaaaaaaa',
                accessControlList: [
                    {
                        eid: 'shj',
@@ -316,7 +316,7 @@ canned acl支持三种权限，分别为：`private`、`public-read`、`public-r
 BOS提供set_bucket_acl方法来实现指定用户对Bucket的访问权限设置，可以参考如下代码实现：
 
 ```
-acl = [{'grantee' => [{'id' => 'b124deeaf6f641c9ac27700b41a350a8'},
+acl = [{'grantee' => [{'id' => 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'},
                       {'id' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'}],
         'permission' => ['FULL_CONTROL']
 }]
@@ -334,7 +334,7 @@ client.set_bucket_acl(bucket_name, acl)
 1. 通过设置referer白名单方式设置防盗链
 
    ```
-   acl = [{'grantee' => [{'id' => 'b124deeaf6f641c9ac27700b41a350a8'},
+   acl = [{'grantee' => [{'id' => 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'},
                          {'id' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'}],
            'permission' => ['FULL_CONTROL'],
            'condition' => {
@@ -351,7 +351,7 @@ client.set_bucket_acl(bucket_name, acl)
 2. 限制客户端IP访问，只允许部分客户端IP访问
 
    ```
-   acl = [{'grantee' => [{'id' => 'b124deeaf6f641c9ac27700b41a350a8'},
+   acl = [{'grantee' => [{'id' => 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'},
                          {'id' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'}],
            'permission' => ['FULL_CONTROL'],
            'condition' => {
@@ -1057,19 +1057,19 @@ BOS提供`set_object_acl`方法和`set_object_canned_acl`方法来实现指定�
 1. 通过`set_object_canned_acl`的`x-bce-grant-read`和`x-bce-grant-full-control`设置指定用户的访问权限
 
    ```
-   id_permission = "id=\"8c47a952db4444c5a097b41be3f24c94\",id=\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\""
+   id_permission = "id=\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",id=\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\""
    client.set_object_canned_acl(bucket_name, object_name, 'x-bce-grant-read' => id_permission)
    ```
 
    ```
-   id_permission = "id=\"8c47a952db4444c5a097b41be3f24c94\",id=\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\""
+   id_permission = "id=\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",id=\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\""
    client.set_object_canned_acl(bucket_name, object_name, 'x-bce-grant-full-control' => id_permission)
    ```
 
 2. 通过`set_object_acl`设置object访问权限
 
    ```
-   acl = [{'grantee' => [{'id' => 'b124deeaf6f641c9ac27700b41a350a8'},
+   acl = [{'grantee' => [{'id' => 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'},
                          {'id' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'}],
            'permission' => ['FULL_CONTROL']
    }]

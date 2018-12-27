@@ -42,10 +42,10 @@ end
 
 demo 'sts client' do
     acl = {
-            id: '8c47a952db4444c5a097b41be3f24c94',
+            id: 'aaaaaaaaaaaaaaaaaaaaa',
             accessControlList: [
                 {
-                    eid: 'shj',
+                    eid: 'eid',
                     service: 'bce:bos',
                     region: 'bj',
                     effect: 'Allow',
