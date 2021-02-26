@@ -425,7 +425,7 @@ module Baidubce
                 params = { fetch: "" }
                 headers = {
                     "x-bce-fetch-source" => source,
-                    "x-bce-fetch-mode" => sync
+                    "x-bce-fetch-mode" => mode
                 }
                 headers.merge! options
 
