@@ -420,6 +420,18 @@ module Baidubce
                 send_request(DELETE, bucket_name, params, key)
             end
 
+            # Fetch object.
+            def fetch_object(bucket_name, key, source, mode = "sync", options = {})
+                params = { fetch: "" }
+                headers = {
+                    "x-bce-fetch-source" => source,
+                    "x-bce-fetch-mode" => sync
+                }
+                headers.merge! options
+
+                send_request(POST, bucket_name, params, key, headers)
+            end
+
             def send_request(http_method, bucket_name="", params={}, key="", headers={}, body="", save_path=nil, return_body=false, &block)
                 path = Utils.append_uri("/", bucket_name, key)
                 body, headers = @http_client.send_request(@config, @signer, http_method, path, params, headers, body, save_path, &block)
@@ -457,5 +469,3 @@ module Baidubce
         end
     end
 end
-
-
